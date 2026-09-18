@@ -228,7 +228,5 @@ Esto junta todo lo pendiente de las dos partes de la TFU3, para no perder nada d
       depende de a qué réplica te toque (ver sección 5).
 - [ ] Decisión sobre la tarea periódica duplicada entre réplicas (ver sección 5): dejarla y
       explicarla, o corregirla.
-- [ ] Limpiar del repo lo que quedó de la demo de TFU2 que no aplica acá (archivos de la
-      presentación anterior, `.tmp/`) para que la entrega no se vea desprolija.
 - [ ] Actualizar el `README.md` principal de la rama (hoy describe la demo de TFU2:
       disponibilidad + seguridad) para que hable de la demo de TFU3.
