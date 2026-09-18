@@ -1,0 +1,17 @@
+.venv/
+# Es donde se intaló FstAPI y otras librerías, se puede reconstruir automáticamente.
+
+
+__pycache__/
+# Python la crea de manera automatica para funcionar de manera mas rápida, el temporal.
+
+*.py[codz]
+# Ignora otros archivos temporales también creados por python
+# el * significa cualquier nombre y [codz] es que puede ser cualquier letra al final
+
+
+.env
+# Acá se guardan dalos locales, acá podrían guardarse las contraseñas
+
+db/password.txt
+db/jwt-secret.txt

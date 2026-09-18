@@ -1,0 +1,96 @@
+.auth-pantalla {
+  min-height: 100svh;
+  background: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 38px 20px;
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 420px;
+  padding: 38px 34px;
+}
+
+.auth-logo {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.3px;
+  color: var(--white);
+}
+
+.auth-tarjeta {
+  margin-top: 44px;
+  background: var(--white);
+  border-radius: 14px;
+  padding: 30px 28px;
+  color: var(--text);
+}
+
+.auth-titulo {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.auth-subtitulo {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.auth-form {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-campo label {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+
+.auth-campo input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.auth-boton {
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+}
+
+.auth-enlaces {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.auth-enlaces a {
+  color: var(--info);
+  text-decoration: none;
+}
+
+.auth-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--danger, #c0392b);
+}
+
+.auth-nota {
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.5);
+}

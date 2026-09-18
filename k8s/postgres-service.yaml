@@ -1,0 +1,38 @@
+# Lo que hace este archivo es que cre un Service interno para PostgreSQL, este 
+# service permite que FastAPI encuentre la base usando el nombre db
+# incluso si se cambia la IP del Pod
+
+apiVersion: v1
+
+#Es el tipo de objeto que creamos, un Service.
+# Service: dirreciión estable para acceder a uno o varios Pods
+kind: Service
+
+#info que identifica al Service
+metadata:
+  name: db
+
+  #El Service se crea dentro del namespace clinica-veterinaria
+  namespace: clinica-veterinaria
+
+# Config de funcionamiento del Service
+spec:
+  #Lo convierte en un Headless Service:
+  # kubernetes no le asigna una IP propia
+  # El DNS dirige al Pod de PostgreSQL
+  clusterIP: None
+
+  #Le indica al Service que pod debe encontrar
+  selector:
+    app: postgres
+
+  # Puertos manejados por el Service
+  ports:
+    # nombre del puerto
+    - name: postgres
+      #FastAPI se va a conectar a db:5432
+      port: 5432
+      #Postgre escucha en el puerto 5432
+      targetPort: 5432
+
+

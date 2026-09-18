@@ -1,0 +1,126 @@
+.pacientes-page {
+  padding: 28px;
+}
+
+.pacientes-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pacientes-filtros {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pacientes-busqueda {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--text);
+  min-width: 220px;
+}
+
+.pacientes-tabs {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.pacientes-mensaje {
+  margin-top: 22px;
+  padding: 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.pacientes-mensaje-error {
+  color: var(--error);
+}
+
+.pacientes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.paciente-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.paciente-card-encabezado {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.paciente-foto {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--gray-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  flex: none;
+}
+
+.paciente-card-titulo {
+  flex: 1;
+}
+
+.paciente-nombre {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.paciente-especie {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.paciente-propietario {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.paciente-datos {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.paciente-dato-valor {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.paciente-boton {
+  margin-top: 16px;
+  width: 100%;
+}

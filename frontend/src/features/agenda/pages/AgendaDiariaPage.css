@@ -1,0 +1,337 @@
+.agenda-page {
+  padding: 28px;
+}
+
+.agenda-encabezado {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.agenda-resumen-texto {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.agenda-navegacion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.agenda-aviso-cambios {
+  margin-top: 18px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid #acd3e3;
+  border-radius: 9px;
+  background: #e6f4fa;
+  color: #145b78;
+  font-size: 13px;
+}
+
+.agenda-leyenda {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.agenda-leyenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.agenda-leyenda-marca {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border-radius: 3px;
+}
+
+.agenda-leyenda-confirmado {
+  border-left: 3px solid var(--navy);
+  background: var(--white);
+}
+
+.agenda-leyenda-atendido {
+  border-left: 3px solid var(--success);
+  background: #eef8f3;
+}
+
+.agenda-leyenda-en-curso {
+  background: var(--navy);
+}
+
+.agenda-leyenda-ahora {
+  border-radius: 0;
+  height: 2px;
+  background: var(--error);
+  align-self: center;
+}
+
+.agenda-panel,
+.agenda-mensaje {
+  margin-top: 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.agenda-panel {
+  padding: 22px 18px 12px;
+}
+
+.agenda-mensaje {
+  padding: 22px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.agenda-mensaje-error {
+  color: var(--error);
+}
+
+.agenda-mensaje-exito {
+  margin-top: 18px;
+  padding: 11px 14px;
+  border: 1px solid var(--success);
+  border-radius: 9px;
+  background: #eef8f3;
+  color: var(--success);
+  font-size: 13px;
+}
+
+.agenda-lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.agenda-hora-bloque {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  column-gap: 14px;
+}
+
+.agenda-hora-etiqueta {
+  padding-top: 6px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.agenda-hora-contenido {
+  min-width: 0;
+  border-top: 1px solid #edf1f3;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agenda-hora-vacia {
+  height: 14px;
+}
+
+.agenda-fila {
+  padding: 7px 12px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(120px, 1fr) auto auto;
+  align-items: center;
+  column-gap: 12px;
+  border: 1px solid #d7e2e7;
+  border-left: 3px solid var(--navy);
+  border-radius: 7px;
+  background: var(--white);
+  font-size: 12.5px;
+}
+
+.agenda-fila-atendido {
+  border-left-color: var(--success);
+}
+
+.agenda-fila-no-asistio {
+  border-left-color: var(--warning);
+  opacity: 0.75;
+}
+
+.agenda-fila-en-curso {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--white);
+}
+
+.agenda-fila-info {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.agenda-fila-info span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agenda-fila-info b {
+  font-weight: 700;
+}
+
+.agenda-fila-tipo {
+  color: var(--text-secondary);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agenda-fila-en-curso .agenda-fila-tipo {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.agenda-estado {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #e8f3f8;
+  color: #17627d;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.agenda-estado-atendido {
+  background: #dcefe5;
+  color: var(--success);
+}
+
+.agenda-estado-en-curso {
+  background: var(--white);
+  color: var(--navy);
+}
+
+.agenda-estado-no-asistio {
+  background: #fff1d7;
+  color: var(--warning);
+}
+
+.agenda-fila-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.agenda-link-historial {
+  color: var(--info);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.agenda-fila-en-curso .agenda-link-historial {
+  color: var(--white);
+  text-decoration: underline;
+}
+
+.agenda-boton-registrar {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--white);
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.agenda-boton-registrar:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.agenda-fila-administracion {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+}
+
+.agenda-fila-en-curso .agenda-fila-administracion {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.agenda-ahora {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.agenda-ahora-etiqueta {
+  background: var(--error);
+  color: var(--white);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.agenda-ahora-linea {
+  flex: 1;
+  height: 2px;
+  background: var(--error);
+}
+
+.agenda-vacia {
+  padding: 20px 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.agenda-nota {
+  margin: 18px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #edf1f3;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+
+@media (max-width: 720px) {
+  .agenda-page {
+    padding: 20px 16px;
+  }
+
+  .agenda-encabezado {
+    align-items: flex-start;
+  }
+
+  .agenda-navegacion {
+    width: 100%;
+  }
+
+  .agenda-aviso-cambios {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .agenda-panel {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}

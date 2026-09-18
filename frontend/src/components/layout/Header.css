@@ -1,0 +1,136 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--navy);
+  color: var(--white);
+}
+
+.header-barra {
+  height: 60px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-marca {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.header-logo {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.2px;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.nav-link {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13.5px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.55);
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link-activo {
+  font-weight: 600;
+  color: var(--white);
+  border-bottom-color: var(--white);
+}
+
+.header-usuario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-badge-rol {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.header-nombre {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.header-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--navy);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logout {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.header-hamburguesa {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .header-hamburguesa {
+    display: block;
+  }
+
+  .header-usuario {
+    display: none;
+  }
+
+  .header-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 28px;
+    background: var(--navy);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    display: none;
+  }
+
+  .header-nav-abierto {
+    display: flex;
+  }
+}

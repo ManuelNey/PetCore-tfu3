@@ -1,0 +1,62 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+}
+
+.boton-primario {
+  border: none;
+  background: var(--navy);
+  color: var(--white);
+}
+
+.boton-primario:hover {
+  background: var(--navy-hover);
+}
+
+.boton-secundario {
+  border: 1.5px solid var(--navy);
+  background: var(--white);
+  color: var(--navy);
+}
+
+.boton:disabled {
+  background: #c9d5dc;
+  border-color: #c9d5dc;
+  color: #7c8f9b;
+  cursor: not-allowed;
+}
+
+.badge {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.badge-activa {
+  background: #e3f1ea;
+  color: var(--success);
+}
+
+.badge-inactiva,
+.badge-neutral {
+  background: var(--gray-card);
+  color: var(--text-secondary);
+}
+
+.tarjeta {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 20px;
+}

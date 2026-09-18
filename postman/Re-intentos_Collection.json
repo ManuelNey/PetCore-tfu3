@@ -1,0 +1,92 @@
+{
+  "info": {
+    "_postman_id": "7ed1cf25-35aa-4024-bbba-478f880968d8",
+    "name": "Pet-Core Re-intentos",
+    "description": "Demuestra reintentos ante fallas simuladas de conexion. Las URLs y el JWT se manejan manualmente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Iniciar sesion",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"ana.cliente@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8000/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["auth", "login"]
+        },
+        "description": "Copiar access_token y pegarlo manualmente en las peticiones 2, 3 y 4."
+      },
+      "response": []
+    },
+    {
+      "name": "2 - Simular fallas de conexion",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_CLIENTE", "type": "string" }]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/debug/simular-falla-conexion?veces=2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["debug", "simular-falla-conexion"],
+          "query": [{ "key": "veces", "value": "2" }]
+        },
+        "description": "Configura dos fallas: los dos primeros intentos fallan y el tercero puede conectarse."
+      },
+      "response": []
+    },
+    {
+      "name": "3 - Ejecutar operacion con reintentos",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_CLIENTE", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["mascotas"]
+        },
+        "description": "Ejecuta una operacion real que accede a la base de datos y activa el mecanismo de reintentos."
+      },
+      "response": []
+    },
+    {
+      "name": "4 - Consultar ultimo intento",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_CLIENTE", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/debug/ultimo-intento-conexion",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["debug", "ultimo-intento-conexion"]
+        },
+        "description": "Consulta la informacion registrada durante la ultima prueba."
+      },
+      "response": []
+    }
+  ]
+}

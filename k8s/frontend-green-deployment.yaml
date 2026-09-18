@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+
+# Tipo de objeto que administra los Pods del frontend
+kind: Deployment
+
+# Informacion que identifica al Deployment
+metadata:
+  name: frontend-green
+  namespace: clinica-veterinaria
+
+# Configuracion del Deployment
+spec:
+  # Por ahora se ejecutara un solo Pod del frontend
+  replicas: 1
+
+  # Permite al Deployment reconocer sus Pods
+  selector:
+    matchLabels:
+      app: clinica-frontend
+      version: green
+
+  # Plantilla utilizada para crear los Pods
+  template:
+    metadata:
+      
+      labels:
+        app: clinica-frontend
+        version: green
+
+    # Configuración del Pod
+    spec:
+      # El frontend no necesita acceder a la API interna de Kubernetes
+      automountServiceAccountToken: false
+
+      # Contenedores que se ejecutan dentro del Pod
+      containers:
+        - name: frontend
+          image: clinica-frontend:v2
+
+          # Vamos a utilizar solo la imagen construida dentro de Minikube
+          imagePullPolicy: Never
+
+          # Puerto donde Nginx  escucha dentro del contenedor
+          ports:
+            - name: http
+              containerPort: 8080
+
+
+          # Comprueba si el frontend esta preparado para recibir solicitudes
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+
+            # Espera antes de realizar la primera comprobacion
+            initialDelaySeconds: 5
+
+            # Repite la comprobacion cada 10 segundos
+            periodSeconds: 10
+
+            #Cada comprobacion puede tardar hasta 5 segundos
+            timeoutSeconds: 5
+
+            # Despues de 3 fallos el Pod queda marcado como no preparado
+            failureThreshold: 3

@@ -1,0 +1,130 @@
+{
+  "info": {
+    "_postman_id": "c55b51c5-04d9-4ec8-a55c-3ea1398813bc",
+    "name": "Seguridad_Collection",
+    "description": "Demuestra autenticacion mediante JWT y autorizacion por roles. Las URLs y tokens se manejan manualmente para hacer visible cada paso.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Acceder a mascotas sin iniciar sesion",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["mascotas"]
+        },
+        "description": "Accede a un endpoint real protegido sin enviar un JWT. Debe responder 401 Unauthorized."
+      },
+      "response": []
+    },
+    {
+      "name": "2 - Iniciar sesion como cliente",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"ana.cliente@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8000/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["auth", "login"]
+        },
+        "description": "Copiar manualmente access_token de la respuesta y pegarlo en las peticiones 3 y 4."
+      },
+      "response": []
+    },
+    {
+      "name": "3 - Cliente consulta sus mascotas",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_CLIENTE", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["mascotas"]
+        },
+        "description": "Pegar manualmente el JWT del cliente. Debe responder 200 OK con mascotas reales."
+      },
+      "response": []
+    },
+    {
+      "name": "4 - Cliente intenta acceder a la agenda veterinaria",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_CLIENTE", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/agenda",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agenda"]
+        },
+        "description": "Pegar el mismo JWT del cliente. Es valido, pero el rol no es VETERINARIO; debe responder 403 Forbidden."
+      },
+      "response": []
+    },
+    {
+      "name": "5 - Iniciar sesion como veterinario",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"bruno.vet@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8000/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["auth", "login"]
+        },
+        "description": "Copiar manualmente access_token de la respuesta y pegarlo en la peticion 6."
+      },
+      "response": []
+    },
+    {
+      "name": "6 - Veterinario accede a su agenda",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_VETERINARIO", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/agenda",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agenda"]
+        },
+        "description": "Pegar manualmente el JWT del veterinario. Debe responder 200 OK."
+      },
+      "response": []
+    }
+  ]
+}
+

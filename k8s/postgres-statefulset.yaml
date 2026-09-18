@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+
+# Tipo de objeto que queremos crear, un StatefulSet:
+# Administra Pods
+# Administra su nombre, almacenamiento, identidad como tal en la red
+# Conviene para PostgreSQL porque la base necesita conservar los datos
+# si el pod es reemplazado
+kind: StatefulSet
+
+# Info qe identifica al StatefulSet
+metadata:
+  # Su nombre es postgres y se crea dentro del namespace clinica-veterinaria
+  name: postgres
+  namespace: clinica-veterinaria
+
+# Como queremos que funcione el StatefulSet
+spec:
+  #Se relaciona co el Headless Service que se llama db
+  serviceName: db
+  #Cuantos Pods se quieren ejecutar
+  replicas: 1
+  
+  # regla que utiliza el StateFulSet para reconocer cuales son sus Pods
+  selector:
+    # Seleccionar los Pods que concidan con la etiqueta:
+    matchLabels:
+      #app: nombre de la etiqueta
+      #postgres: el valor/nombre que se busca
+      app: postgres
+
+# Es el Pod que el Statefulset debe crear
+  template:
+  # Se le asigna al pod la etiqueta app:postgres
+    metadata:
+      labels:
+        app: postgres
+
+    # Contenedores del Pod
+    spec:
+
+      # PostgreSQL no necesita acceder a la API de Kubernetes
+      automountServiceAccountToken: false
+      
+      containers:
+        - name: postgres
+          image: postgres:18
+          
+          #Puertos usados por el contenedor
+          ports:
+            - name: postgres
+              containerPort: 5432
+
+          # Variables de entorno entregadas al contenedro
+          env:
+            #Nombre de la base inicial que crea a la imagen
+            - name: POSTGRES_DB
+              value: postgres
+
+            # usuario administrador inicial de PosgreSQL
+            - name: POSTGRES_USER
+              value: postgres
+
+            # Indica que la contarsenia tiene que leerse de un archivo
+            - name: POSTGRES_PASSWORD_FILE
+              value: /run/secrets/db-password
+
+          # Lista de volúmenes que el contenedor puede ver
+          volumeMounts:
+
+            # name: Nombre del volumen
+            # mounthPath: carpeta dentro del contenedor donde Kubernetes coloca el contenido de un volumen
+            # readOnly: el Contenedor pueder solo verlo, no modificarlo
+
+            #Kubernetes colocará dentro de /run/secrets el archivo db-password
+            - name: postgres-secret
+              mountPath: /run/secrets
+              readOnly: true
+
+            # En este archivo van a aparecer los 3 archivos SQL del ConfigMap.
+            # La imagen de PostgreSQL ejecuta los .sql de esa carpeta al incializarse la base vacía
+            - name: postgres-init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+
+            # Va a guardar los datos reales de PostgreSQL, no es solo lectura como los otros,
+            # ya que Postgre va a precisar escribir ahí
+            - name: postgres-data
+              mountPath: /var/lib/postgresql
+
+
+# Comprueba si el contenedor está preparado para recibir conexiones
+          readinessProbe:
+            # ejecuta un comando dentro del contenedor
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "postgres"]
+              # pg_isready: comprueba si el servicor acepta conexiones
+              # -U postgres: realiza la comprobacion usando el usuario postgres
+              # -d postgres: compreuba a base postgres
+
+            # espera 5 segundos antes de hacer la priemra comprobacion
+            initialDelaySeconds: 5
+            # repite la comprobacion cada 10 s.
+            periodSeconds: 10
+            # cada intento puede tardar hasta máximo 5 s
+            timeoutSeconds: 5
+            # despues de cindo fallos seguidos, el Pod sigue marcado como no preparado
+            failureThreshold: 5
+
+
+      # Volúmenes disponibles para el Pod
+      volumes:
+        # Nombre interno que concide con el usado antes en VolumeMounts
+        - name: postgres-secret
+          # El contenido viene de un tipo secret
+          secret:
+            #Nombre del secret creado en Kubernetes
+            secretName: postgres-secret
+
+        # Nombre interno del 2do volumen
+        - name: postgres-init
+          # Viene de un ConfigMap
+          configMap:
+            # Nombre real del ConfigMap que contiene los 3 SQL
+            name: postgres-init
+
+
+  # Le pide al StatefulSet que cree un volumen constante para cada Pod
+  volumeClaimTemplates:
+    - metadata:
+        # Concide con el usado en voumeMounts
+        name: postgres-data
+
+      spec:
+        # Indica cómo debe levantarse el volumen
+        # Permite que un volumen se monte con lectura y escritura desde un nodo.
+        accessModes: [ "ReadWriteOnce" ]
+
+        # Cantidad de almacenamiento solicitada
+        resources:
+          requests:
+            storage: 1Gi
+
+          

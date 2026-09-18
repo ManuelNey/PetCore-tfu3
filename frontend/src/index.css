@@ -1,0 +1,42 @@
+@import './components/common/botones.css';
+
+:root {
+  color-scheme: light;
+
+  /* Paleta Pet-Core */
+  --navy: #062a3d;
+  --navy-hover: #0a3e58;
+  --navy-active: #04202f;
+  --white: #ffffff;
+  --gray-card: #f2f6f8;
+  --border: #dce4e9;
+  --text: #0b2331;
+  --text-secondary: #5b7385;
+  --info: #0b6e99;
+  --success: #126e4f;
+  --warning: #8a5a0b;
+  --error: #a32c22;
+
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Archivo', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--gray-card);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  margin: 0;
+}

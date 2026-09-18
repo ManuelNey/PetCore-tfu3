@@ -1,0 +1,72 @@
+{
+  "info": {
+    "_postman_id": "878571f6-d981-42da-a47d-15f032302649",
+    "name": "Replicacion_Collection",
+    "description": "Demuestra que Nginx distribuye solicitudes entre dos replicas y que una funcionalidad real sigue disponible si una replica cae. Las URLs y tokens se manejan manualmente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Iniciar sesion como cliente",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"ana.cliente@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8000/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["auth", "login"]
+        },
+        "description": "Copiar access_token y pegarlo manualmente en las peticiones 2 y 3."
+      },
+      "response": []
+    },
+    {
+      "name": "2 - Identificar instancia",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_CLIENTE", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/demo/instancia",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["demo", "instancia"]
+        },
+        "description": "Ejecutar varias veces. El cuerpo muestra el hostname de la replica que atendio la solicitud."
+      },
+      "response": []
+    },
+    {
+      "name": "3 - Consultar mascotas",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [{ "key": "token", "value": "PEGA_AQUI_EL_TOKEN_DEL_CLIENTE", "type": "string" }]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["mascotas"]
+        },
+        "description": "Operacion real de Pet-Core. Ejecutarla antes y despues de detener una replica; debe responder 200 OK mientras quede una replica activa."
+      },
+      "response": []
+    }
+  ]
+}
+

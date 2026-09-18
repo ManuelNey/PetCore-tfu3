@@ -1,0 +1,21 @@
+# Mientras que en gitignore se evita enviar ciertos archivos a git,
+# el dockerignore evita enviar archivos no necesarios a Docker cuando 
+# se construye la imagen
+
+**/__pycache__
+#Ignora las carpetas llamadas pychache
+
+**/*.py[codz]
+# Hace lo mismo que en el gitignore
+
+**/.venv
+# Ingora el entorno de uv
+
+**/.env
+# Explicado en gitignore
+
+**/.git
+# Esta carpeta tiene el historial, las ramas y más cosas del repo
+
+**/.gitignore
+# No copia el gitignore

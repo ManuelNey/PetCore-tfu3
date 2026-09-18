@@ -1,0 +1,76 @@
+.consulta-modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 42, 61, 0.35);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 100;
+}
+
+.consulta-modal-panel {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background: var(--white);
+  padding: 32px 30px;
+  overflow-y: auto;
+  box-shadow: -8px 0 24px rgba(6, 42, 61, 0.12);
+}
+
+.consulta-modal-titulo {
+  font-size: 26px;
+}
+
+.consulta-modal-subtitulo {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.consulta-form {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.consulta-form-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.consulta-form-campo label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.consulta-form-campo textarea {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--white);
+  resize: vertical;
+}
+
+.consulta-form-campo textarea:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(11, 110, 153, 0.14);
+}
+
+.consulta-form-acciones {
+  margin-top: 6px;
+  display: flex;
+  gap: 10px;
+}
+
+.consulta-form-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--error);
+}

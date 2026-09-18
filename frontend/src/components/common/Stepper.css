@@ -1,0 +1,65 @@
+.stepper {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+}
+
+.stepper-item {
+  display: flex;
+  align-items: center;
+}
+
+.stepper-item:not(:last-child) {
+  flex: 1;
+}
+
+.stepper-paso {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepper-numero {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gray-card);
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.stepper-numero-activo {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.stepper-etiqueta {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.stepper-etiqueta-activa {
+  color: var(--text);
+}
+
+.stepper-estado {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.stepper-linea {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin: 0 12px;
+  min-width: 20px;
+}

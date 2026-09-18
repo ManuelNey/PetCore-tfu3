@@ -1,0 +1,36 @@
+// Datos de ejemplo para maquetar la pantalla. No viene de ninguna API todavía.
+export const MASCOTAS_MOCK = [
+  {
+    id: 1,
+    nombre: 'Luna',
+    especie: 'Canino',
+    raza: 'Border collie',
+    activa: true,
+    edad: '4 años',
+    ultimoPeso: '18,4 kg',
+    proximoTurno: '25/08/2026',
+    consultas: 7,
+  },
+  {
+    id: 2,
+    nombre: 'Milo',
+    especie: 'Felino',
+    raza: 'Siamés',
+    activa: true,
+    edad: '2 años',
+    ultimoPeso: '4,1 kg',
+    proximoTurno: 'Sin turnos',
+    consultas: 3,
+  },
+  {
+    id: 3,
+    nombre: 'Toby',
+    especie: 'Canino',
+    raza: 'Beagle',
+    activa: false,
+    edad: '9 años',
+    ultimoPeso: '14,2 kg',
+    proximoTurno: 'Sin turnos',
+    consultas: 12,
+  },
+]

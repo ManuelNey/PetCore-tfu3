@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+
+# Tipo de objeto que administra los Pods de FastAPI
+kind: Deployment
+
+# Información que identifica al Deployment
+metadata:
+  name: api-green
+  namespace: clinica-veterinaria
+
+# Configuracion del Deployment
+spec:
+  # Por ahora se ejecutará un solo Pod de FastAPI
+  replicas: 1
+
+  # Permite al Deployment reconocer sus Pods
+  selector:
+    matchLabels:
+      app: clinica-api
+      version: green
+
+  # Plantilla utilizada para crear los Pods
+  template:
+    metadata:
+      labels:
+        app: clinica-api
+        version: green
+
+    # Configuracion del Pod
+    spec:
+      #FastAPI no necesita acceder a la API interna de Kubernetes
+      automountServiceAccountToken: false
+
+      # Contenedores que se ejecutan dentro del Pod
+      containers:
+        - name: api
+          image: clinica-veterinaria:v2
+
+          # Usamos unicamente la imagen constuida dentro de Minikube
+          imagePullPolicy: Never
+
+          # Puerto donde FastAPI escucha dentro del contenedor
+          ports:
+            - name: http
+              containerPort: 8000
+
+
+          # Variables utilizadas por app/config.py
+          env:
+            # Nombre del Service interno de PostgreSQL
+            - name: POSTGRES_SERVER
+              value: db
+
+            # Puerto interno de PostgreSQL
+            - name: POSTGRES_PORT
+              value: "5432"
+
+            # Usuario utilizado por la aplicación
+            - name: POSTGRES_USER
+              value: petcore_app
+
+            # Base de datos utilizada
+            - name: POSTGRES_DB
+              value: postgres
+
+            # Archivo que contiene la contrasenia
+            - name: POSTGRES_PASSWORD_FILE
+              value: /run/secrets/db-password
+
+            # Archivo que contiene la clave utilizada para firmar los JWT
+            - name: JWT_SECRET_KEY_FILE
+              value: /run/jwt-secret/jwt-secret
+
+            # Duración de los tokens de acceso
+            - name: JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+              value: "15"
+
+            # Cantidad maxima de intentos fallidos
+            - name: LOGIN_MAX_INTENTOS
+              value: "5"
+
+            # Minutos durante los que se bloquea la cuenta
+            - name: LOGIN_BLOQUEO_MINUTOS
+              value: "15"
+
+
+          # Permite que FastAPI lea el archivo con la contrasenia
+          volumeMounts:
+            - name: postgres-secret
+              mountPath: /run/secrets
+              readOnly: true
+
+            - name: jwt-secret
+              mountPath: /run/jwt-secret
+              readOnly: true
+
+          # Comprueba si FastAPI esta preparado para recibir solicitudes
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+
+            # Espera antes de realizar la primera comprobación
+            initialDelaySeconds: 5
+
+            # Repite la comprobación cada 10 segundos
+            periodSeconds: 10
+
+            # Cada comprobación puede tardar hasta 5 segundos
+            timeoutSeconds: 5
+
+            # Después de 3 fallos el Pod queda marcado como no preparado
+            failureThreshold: 3
+
+      # volumenes disponibles para el Pod.
+      volumes:
+        - name: postgres-secret
+          secret:
+            secretName: postgres-secret
+
+        - name: jwt-secret
+          secret:
+            secretName: jwt-secret
+

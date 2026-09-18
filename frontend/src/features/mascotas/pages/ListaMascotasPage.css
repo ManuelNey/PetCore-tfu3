@@ -1,0 +1,188 @@
+.mascotas-page {
+  padding: 28px;
+}
+
+.mascotas-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.mascotas-resumen {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.mascotas-acciones-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mascotas-tabs {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.tab {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tab-activo {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.mascotas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.mascota-card-encabezado {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.mascota-foto {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gray-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  flex: none;
+}
+
+.mascota-card-titulo {
+  flex: 1;
+}
+
+.mascota-nombre {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.mascota-especie {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.mascota-datos {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.mascota-dato-valor {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mascota-acciones {
+  margin-top: 18px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mascotas-mensaje {
+  margin-top: 22px;
+  padding: 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.mascotas-mensaje-error {
+  color: var(--danger, #c0392b);
+}
+
+.mascotas-mensaje-exito {
+  color: var(--success);
+  border-color: var(--success);
+  background: #e3f1ea;
+}
+
+.mascota-acciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.mascota-acciones .mascota-accion-boton {
+  width: 100%;
+  min-width: 0;
+  height: 43px;
+  margin: 0;
+  padding: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mascota-acciones .mascota-boton-inactivar {
+  color: #ffffff;
+  background-color: #c9372c;
+  border-color: #c9372c;
+}
+
+.mascota-acciones .mascota-boton-inactivar:hover {
+  background-color: #ad2f26;
+  border-color: #ad2f26;
+}
+
+.mascota-acciones .mascota-boton-activar {
+  color: #ffffff;
+  background-color: #218c5a;
+  border-color: #218c5a;
+}
+
+.mascota-acciones .mascota-boton-activar:hover {
+  background-color: #197347;
+  border-color: #197347;
+}
+
+.mascota-acciones .mascota-accion-boton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mascota-card-inactiva {
+  opacity: 0.55;
+  filter: grayscale(40%);
+}

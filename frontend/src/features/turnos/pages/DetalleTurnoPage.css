@@ -1,0 +1,49 @@
+.detalle-turno-page {
+  padding: 28px;
+  max-width: 640px;
+}
+
+.detalle-turno-volver {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.detalle-turno-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.detalle-turno-filas {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detalle-turno-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.detalle-turno-fila strong {
+  color: var(--text);
+}
+
+.detalle-turno-acciones {
+  margin-top: 22px;
+}
+
+.detalle-turno-error {
+  color: var(--danger, #c0392b);
+  margin-bottom: 14px;
+}

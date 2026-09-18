@@ -1,0 +1,276 @@
+.historial-page {
+  padding: 28px;
+  max-width: 900px;
+}
+
+.historial-breadcrumb {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.historial-breadcrumb a {
+  color: var(--info);
+  text-decoration: none;
+}
+
+.historial-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.historial-encabezado-titulo {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.historial-foto {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gray-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  flex: none;
+}
+
+.historial-encabezado-titulo h1 {
+  font-size: 22px;
+}
+
+.historial-subtitulo {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.historial-acciones {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.historial-filtro-tipo {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--text);
+}
+
+.historial-aviso {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.historial-aviso-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--info);
+  margin-top: 5px;
+  flex: none;
+}
+
+.historial-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.historial-tarjeta {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--navy);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.historial-tarjeta-no-recuperada {
+  border-left-color: var(--error);
+  border-style: dashed;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.historial-consulta-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.historial-consulta-encabezado h3 {
+  font-size: 16px;
+}
+
+.historial-consulta-meta {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.historial-badges {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.historial-nota-correccion {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--warning);
+}
+
+.historial-campos {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.historial-campos-dos-columnas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+}
+
+.historial-campo-etiqueta {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.historial-campo-valor {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.historial-mensaje {
+  margin-top: 22px;
+  padding: 20px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.historial-mensaje-error {
+  color: var(--error);
+}
+
+.historial-ver-mas {
+  margin-top: 18px;
+  background: none;
+  border: none;
+  color: var(--info);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* --- Correcciones (vista veterinario) --- */
+
+.historial-correcciones {
+  margin-top: 16px;
+  border-top: 1px dashed var(--border);
+  padding-top: 14px;
+}
+
+.historial-correcciones-titulo {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.historial-correccion-bloque {
+  background: var(--gray-card);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.historial-correccion-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.historial-correccion-motivo {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text);
+}
+
+.historial-correccion-autor {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* --- Alerta de historial inconsistente (vista veterinario) --- */
+
+.historial-alerta-inconsistente {
+  background: #fbeceb;
+  border: 1px solid var(--error);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.historial-alerta-inconsistente-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.historial-alerta-inconsistente-encabezado strong {
+  color: var(--error);
+  font-size: 14.5px;
+}
+
+.historial-alerta-inconsistente-encabezado p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--text);
+  max-width: 560px;
+}
+
+.historial-alerta-resumen {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--error);
+  border-top: 1px solid rgba(163, 44, 34, 0.25);
+  padding-top: 10px;
+}

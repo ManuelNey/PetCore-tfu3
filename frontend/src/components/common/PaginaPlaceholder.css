@@ -1,0 +1,15 @@
+.placeholder {
+  padding: 28px;
+}
+
+.placeholder-titulo {
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.placeholder-descripcion {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  max-width: 480px;
+}

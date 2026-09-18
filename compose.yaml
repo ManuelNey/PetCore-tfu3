@@ -1,0 +1,97 @@
+services:
+
+  # Servicio del frontend (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - 5173:5173
+
+    # Monta el código para que los cambios se vean sin reconstruir la imagen
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # Servicio de FastAPI
+  server:
+    build:
+      context: .
+    expose:
+      - "8000"
+    
+    # Datos para que FastAPI encuentre PostgreSQL
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_USER: petcore_app
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+
+      JWT_SECRET_KEY_FILE: /run/secrets/jwt-secret
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      LOGIN_MAX_INTENTOS: 5
+      LOGIN_BLOQUEO_MINUTOS: 15
+    
+    # Esperar a que PostgreSQL este saludable antes de iniciar FastAPI
+    depends_on:
+      db:
+        condition: service_healthy
+    
+    # Deja a FastAPI leer la contraseña
+    secrets:
+      - db-password
+      - jwt-secret
+
+  # Balancea las solicitudes entre las réplicas de FastAPI
+  balanceador:
+    image: nginx:alpine
+    ports:
+      - "8000:8080"
+    volumes:
+      - ./nginx/andis.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server
+      
+  # Servicio de PostgreSQL
+  db:
+    image: postgres:18
+    container_name: postgres-dev
+
+    # Reinicia PostgreSQL automáticamente si el contenedor se detiene
+    restart: always
+    user: postgres
+
+    # Permite a PostgreSQL leer la contraseña
+    secrets:
+      - db-password
+
+    # Config inicial de PostgreSQL
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+    
+    ports:
+      - "5432:5432"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+
+    # Comprueba cada 10 segundos si PostgreSQL acepta conexiones
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Crea un volumen para guardar los datos de PostgreSQL
+# Los datos permanecen aunque se elimine el contenedor, mientras no se elimine el volumen
+volumes:
+  postgres_data:
+
+# Acá se declara el archivo de contraseña como un secreto de Docker Compose
+secrets:
+  db-password:
+    file: db/password.txt
+
+  jwt-secret:
+    file: db/jwt-secret.txt
