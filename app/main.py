@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import FALLAR_PROXIMAS_CONEXIONES, ULTIMO_INTENTO_CONEXION
+from app.turnos.repository import FORZAR_FALLA_TRAS_INSERTAR_CONSULTA
 from app.Middleware.middleware import JWTMiddleware, obtener_usuario_actual
 from app.turnos.tareas_programadas import ejecutar_tarea_periodica
 from app.Auth.login.controller import router as login_router
@@ -22,6 +23,7 @@ from app.agenda.controller import router as agenda_router
 from app.historial.controller import router as historial_router
 from app.pacientes.controller import router as pacientes_router
 from app.demo.controller import router as demo_router
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -87,3 +89,49 @@ def ultimo_intento_conexion(
     _usuario: dict = Depends(obtener_usuario_actual),
 ) -> dict:
     return ULTIMO_INTENTO_CONEXION
+
+# Solo para demostrar ACID: arma la próxima llamada a
+# POST /turnos/{id_turno}/consulta para que falle justo después de
+# insertar la consulta clínica y antes de actualizar el turno y hacer
+# commit (ver TurnoRepository.registrar_consulta).
+@app.post("/debug/simular-falla-registrar-consulta")
+def simular_falla_registrar_consulta(
+    _usuario: dict = Depends(obtener_usuario_actual),
+) -> dict:
+    FORZAR_FALLA_TRAS_INSERTAR_CONSULTA["activar"] = True
+    return {
+        "mensaje": (
+            "La próxima llamada a POST /turnos/{id_turno}/consulta va a "
+            "fallar a mitad de camino (después del INSERT de la consulta, "
+            "antes del UPDATE del turno y antes del commit)."
+        )
+    }
+
+
+# Estado actual de un turno + cuántas consultas clínicas tiene registradas.
+# Se usa antes y después de la falla simulada para comprobar que no quedó
+# nada a medias (ver README-TFU3.md, sección 4).
+@app.get("/debug/estado-turno/{id_turno}")
+def estado_turno_debug(
+    id_turno: int,
+    _usuario: dict = Depends(obtener_usuario_actual),
+    session: Session = Depends(get_session),
+) -> dict:
+    turno = session.execute(
+        text("SELECT estado FROM turno WHERE id_turno = :id_turno"),
+        {"id_turno": id_turno},
+    ).mappings().first()
+
+    if turno is None:
+        raise HTTPException(status_code=404, detail="Turno no encontrado.")
+
+    total_consultas = session.execute(
+        text("SELECT count(*) AS total FROM consulta_clinica WHERE id_turno = :id_turno"),
+        {"id_turno": id_turno},
+    ).scalar_one()
+
+    return {
+        "id_turno": id_turno,
+        "estado_turno": turno["estado"],
+        "consultas_clinicas_registradas": total_consultas,
+    }
