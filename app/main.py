@@ -1,10 +1,11 @@
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import Session, text
+from app.database import FALLAR_PROXIMAS_CONEXIONES, ULTIMO_INTENTO_CONEXION, get_session
 
-from app.database import FALLAR_PROXIMAS_CONEXIONES, ULTIMO_INTENTO_CONEXION
 from app.turnos.repository import FORZAR_FALLA_TRAS_INSERTAR_CONSULTA
 from app.Middleware.middleware import JWTMiddleware, obtener_usuario_actual
 from app.turnos.tareas_programadas import ejecutar_tarea_periodica
