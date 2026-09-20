@@ -115,126 +115,17 @@ El valor es el hostname asignado por Docker al contenedor que respondió. Cada r
 ## Importar las peticiones en Postman
 
 1. Abrir Postman y seleccionar **Import**.
-2. Seleccionar `postman/Seguridad_Collection.json`, `postman/Replicacion_Collection.json` y `postman/Re-intentos_Collection.json`.
+2. Seleccionar `UT3_TFU Escalado.postman_collection`.
 3. Abrir la colección que se quiera utilizar.
 4. Las colecciones utilizan direcciones explícitas con `http://localhost:8000`; no requieren configurar un Environment ni una variable `base_url`.
 5. Después de cada petición de inicio de sesión, copiar manualmente el valor de `access_token` y pegarlo en **Authorization > Bearer Token** de las peticiones siguientes indicadas por la colección.
 
 El endpoint de demostración requiere un token válido, pero acepta cualquier rol autenticado. Manejar el JWT manualmente permite ver con claridad qué dato devuelve el login y qué dato se envía después en el encabezado `Authorization`.
 
-## Demostración de seguridad con Postman
+---
+# Demostración de escalabilidad horizontal y servicio sin estado con Postman
 
-La colección `postman/Seguridad_Collection.json` demuestra dos tácticas de la categoría **resistir ataques**:
-
-- **Autenticar actores:** comprobar la identidad mediante correo, contraseña y un token JWT.
-- **Autorizar actores:** permitir o rechazar operaciones según el rol incluido en el JWT.
-
-Conviene ejecutar esta demostración antes de replicación y reintentos, porque las demás colecciones también utilizan el login y los tokens.
-
-### Preparación
-
-Levantar el ambiente:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\andis-up.ps1
-```
-
-Importar `postman/Seguridad_Collection.json`. Las peticiones están numeradas y deben ejecutarse en orden.
-
-### Táctica 1: autenticar actores
-
-1. Ejecutar **1 - Acceder a mascotas sin iniciar sesion**.
-
-La petición intenta acceder a `GET /mascotas` sin enviar un token. La respuesta esperada es:
-
-```text
-401 Unauthorized
-```
-
-Esto demuestra que conocer la dirección del endpoint no alcanza para utilizarlo.
-
-2. Ejecutar **2 - Iniciar sesion como cliente**.
-
-La API valida las credenciales y responde `200 OK` junto con un JWT. Copiar el valor de `access_token` de la respuesta y pegarlo manualmente en **Authorization > Bearer Token** de las peticiones 3 y 4.
-
-3. Ejecutar **3 - Cliente consulta sus mascotas**.
-
-Postman envía el JWT pegado manualmente como Bearer Token. La respuesta esperada es `200 OK` y contiene las mascotas reales del cliente. El mismo endpoint que rechazó la primera petición ahora permite el acceso porque la identidad fue autenticada.
-
-### Táctica 2: autorizar actores
-
-4. Ejecutar **4 - Cliente intenta acceder a la agenda veterinaria**.
-
-El cliente posee un JWT válido, pero intenta acceder a `GET /agenda`, que requiere el rol `VETERINARIO`. La respuesta esperada es:
-
-```text
-403 Forbidden
-```
-
-`401` significa que no se pudo autenticar al usuario. `403` significa que el usuario sí fue autenticado, pero su rol no tiene permiso para ejecutar esa operación.
-
-5. Ejecutar **5 - Iniciar sesion como veterinario**.
-
-Postman utiliza `bruno.vet@petcore.com` y debe recibir `200 OK`. Copiar su `access_token` y pegarlo manualmente en **Authorization > Bearer Token** de la petición 6.
-
-6. Ejecutar **6 - Veterinario accede a su agenda**.
-
-La petición utiliza el token del veterinario para llamar a `GET /agenda`. La respuesta esperada es `200 OK`, porque el usuario tiene el rol requerido.
-
-La evidencia de esta demo es visual: comprobar los códigos `401`, `200`, `403` y `200` que aparecen en Postman.
-
-## Demostración automática de autenticación
-
-El script `scripts/demo-autenticacion.ps1` reproduce automáticamente la primera táctica de seguridad sobre el endpoint real `GET /mascotas`:
-
-1. intenta acceder a `GET /mascotas` sin token;
-2. comprueba que la API responda `401 Unauthorized`;
-3. inicia sesión como cliente;
-4. repite la solicitud enviando el JWT;
-5. comprueba que la API responda `200 OK`.
-
-Ejecutar:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\demo-autenticacion.ps1
-```
-
-La salida esperada es:
-
-```text
-Estado sin token: 401
-Estado con token: 200
-Demostracion de autenticacion exitosa.
-```
-
-## Demostración automática de autorización
-
-El script `scripts/demo-autorizacion.ps1` reproduce automáticamente la segunda táctica de seguridad:
-
-1. inicia sesión como cliente;
-2. intenta acceder a `GET /agenda`;
-3. comprueba que la API responda `403 Forbidden`;
-4. inicia sesión como veterinario;
-5. accede nuevamente a `GET /agenda`;
-6. comprueba que la API responda `200 OK`.
-
-Ejecutar:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\demo-autorizacion.ps1
-```
-
-La salida esperada es:
-
-```text
-Estado para el cliente: 403
-Estado para el veterinario: 200
-Demostracion de autorizacion exitosa.
-```
-
-## Demostración de replicación con Postman
-
-### 1. Comprobar el balanceo
+### 1. Levantar las dos réplicas
 
 Levantar la aplicación:
 
@@ -242,202 +133,196 @@ Levantar la aplicación:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\andis-up.ps1
 ```
 
-Ejecutar primero **1 - Iniciar sesion como cliente**, copiar el `access_token` y pegarlo manualmente como Bearer Token en las peticiones 2 y 3. Luego ejecutar varias veces:
+Comprobar los contenedores:
+
+```powershell
+docker compose ps
+```
+
+Deben aparecer dos contenedores pertenecientes al servicio `server`, además de Nginx y PostgreSQL.
+
+La existencia de dos instancias del backend constituye la primera evidencia de **escalabilidad horizontal**, ya que la capacidad del sistema se amplió agregando una nueva réplica en lugar de aumentar CPU o memoria de una única instancia.
+
+---
+
+### 2. Comprobar el balanceo entre las réplicas
+
+Ejecutar varias veces:
 
 ```http
 GET http://localhost:8000/demo/instancia
 ```
 
-Las respuestas deben alternar entre dos identificadores porque existen dos contenedores ejecutando la misma API. Nginx utiliza de forma predeterminada un balanceo llamado *round-robin*: envía la primera solicitud a una réplica, la siguiente a la otra y luego vuelve a comenzar. El endpoint devuelve el hostname del contenedor que atendió cada solicitud, por eso se observan dos valores diferentes aunque ambos contenedores ejecuten el mismo código.
+Las respuestas deben alternar entre dos identificadores distintos porque existen dos contenedores ejecutando la misma API detrás de Nginx.
 
 Por ejemplo:
 
-```text
-Solicitud 1 -> replica 1 -> dc0948ef34a5
-Solicitud 2 -> replica 2 -> bdd5ee22fea7
-Solicitud 3 -> replica 1 -> dc0948ef34a5
-Solicitud 4 -> replica 2 -> bdd5ee22fea7
+```json
+{
+    "instancia": "35e8f980a65e"
+}
 ```
 
-En **Headers** se pueden observar:
+En **Headers** también se pueden observar:
 
 ```text
 X-Upstream-Addr
 X-Upstream-Status
 ```
 
-`X-Upstream-Addr` identifica el servidor interno utilizado y `X-Upstream-Status` muestra el resultado obtenido desde la API.
+`X-Upstream-Addr` permite identificar qué réplica procesó la solicitud y `X-Upstream-Status` muestra el resultado devuelto por la API.
 
-### 2. Provocar la falla de una réplica
+Aunque las solicitudes son atendidas por diferentes instancias, el cliente utiliza siempre la misma dirección:
 
-Mostrar los nombres de los contenedores:
-
-```powershell
-docker compose ps
+```text
+http://localhost:8000
 ```
 
-Detener una réplica, sustituyendo el nombre del ejemplo si fuera diferente:
+Esto demuestra que Nginx actúa como balanceador y distribuye las solicitudes entre las réplicas disponibles.
 
-```powershell
-docker stop proyecto_clnica_veterinaria-server-1
-docker compose ps -a
-```
+---
 
-Una réplica debe aparecer como `Exited` y la otra como `Up`.
+### 3. Comprobar que el mismo JWT funciona en ambas réplicas
 
-### 3. Comprobar la continuidad y los reintentos
-
-Sin recuperar la réplica detenida, volver a ejecutar varias veces en Postman:
+Ejecutar varias veces:
 
 ```http
-GET http://localhost:8000/demo/instancia
+GET http://localhost:8000/mascotas
 ```
 
-Las solicitudes deben continuar respondiendo con `200 OK` desde la réplica activa. Además de `2 - Identificar instancia`, ejecutar `3 - Consultar mascotas`: este endpoint real de Pet-Core también debe responder `200 OK` mientras quede una réplica disponible. Cuando Nginx intenta primero acceder a la que acaba de fallar, los encabezados pueden mostrar:
+utilizando el mismo Bearer Token obtenido durante el inicio de sesión.
+
+En cada ejecución se debe comprobar:
 
 ```text
-X-Upstream-Status: 502, 200
+Status: 200 OK
 ```
 
-Esto indica que el primer intento falló y el siguiente fue atendido por la otra réplica. Si Nginx ya marcó temporalmente la réplica como no disponible, puede aparecer directamente `200`.
-
-La evidencia conjunta es:
-
-- Docker muestra una réplica detenida;
-- Postman continúa recibiendo `200 OK`;
-- el cuerpo de `demo/instancia` identifica la réplica activa;
-- `GET /mascotas` confirma que una funcionalidad real continúa disponible;
-- los encabezados muestran el servidor utilizado y, cuando ocurre, el reintento.
-
-### 4. Recuperar las dos réplicas
-
-```powershell
-docker compose up -d --scale server=2 server
-docker compose up -d --no-deps --force-recreate balanceador
-docker compose ps
-```
-
-## Demostración de reintentos con Postman
-
-Esta demostración utiliza la colección **Pet-Core Re-intentos**, guardada en `postman/Re-intentos_Collection.json`.
-
-Las peticiones están numeradas en el orden en que deben ejecutarse:
-
-1. **Iniciar sesion** autentica al cliente; copiar manualmente su `access_token` y pegarlo como Bearer Token en las peticiones 2, 3 y 4.
-2. **Simular fallas de conexion** configura dos fallas mediante `POST /debug/simular-falla-conexion?veces=2`.
-3. **Ejecutar operacion con reintentos** llama a `GET /mascotas`, que accede a la base de datos y activa la lógica de reintentos.
-4. **Consultar ultimo intento** llama a `GET /debug/ultimo-intento-conexion` para observar la información registrada durante la prueba.
-
-### Paso a paso
-
-1. Levantar el ambiente:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\andis-up.ps1
-```
-
-2. Para esta demostración, dejar temporalmente una sola réplica y actualizar Nginx:
-
-```powershell
-docker compose up -d --scale server=1 server
-docker compose up -d --no-deps --force-recreate balanceador
-```
-
-Se utiliza una sola réplica porque el estado de la falla simulada se guarda en la memoria del contenedor. Así, todas las peticiones de la demostración llegan al mismo proceso.
-
-3. Importar `postman/Re-intentos_Collection.json` en Postman.
-4. Ejecutar **1 - Iniciar sesion** y comprobar que responda `200 OK`. Copiar el `access_token` de la respuesta y pegarlo manualmente como Bearer Token en las peticiones 2, 3 y 4.
-5. Ejecutar **2 - Simular fallas de conexion**. Debe responder un mensaje indicando que las próximas dos conexiones van a fallar.
-6. Ejecutar **3 - Ejecutar operacion con reintentos**. Los intentos ocurren de esta manera:
+y observar el encabezado:
 
 ```text
-Intento 1 -> falla -> espera 0,5 segundos
-Intento 2 -> falla -> espera 1 segundo
-Intento 3 -> conexión exitosa
+X-Upstream-Addr
 ```
 
-La solicitud debe terminar con `200 OK`: aunque hubo dos fallas transitorias, el tercer intento permitió completar la operación.
+Las peticiones deben ser procesadas por ambas réplicas y el mismo JWT debe funcionar independientemente de cuál de ellas atienda la solicitud.
 
-7. Ejecutar **4 - Consultar ultimo intento**. La respuesta esperada es similar a:
+Esto demuestra que la autenticación no depende de una sesión almacenada únicamente en la memoria de una réplica.
+
+El JWT contiene la información necesaria para identificar al usuario y ambas instancias pueden validarlo porque utilizan la misma configuración de seguridad.
+
+---
+
+### 4. Modificar una mascota desde una réplica
+
+Primero ejecutar:
+
+```http
+GET http://localhost:8000/mascotas
+```
+
+y seleccionar una mascota cuyo estado sea:
+
+```text
+ACTIVA
+```
+
+Copiar su `id_mascota`.
+
+Luego ejecutar, reemplazando `1` por el identificador correspondiente:
+
+```http
+PATCH http://localhost:8000/mascotas/1/inactivar
+```
+
+Esta petición no necesita body, la respuesta esperada es:
+
+```text
+200 OK
+```
+
+Con un resultado similar a:
 
 ```json
 {
-  "intentos_usados": 3,
-  "duracion_segundos": 1.5,
-  "exitoso": true
+  "id_mascota": 1,
+  "estado": "INACTIVA"
+}
+```
+Registrar también:
+
+```text
+X-Upstream-Addr
+```
+
+Ese encabezado permite identificar qué réplica realizó la modificación.
+
+---
+
+### 5. Restaurar la mascota
+
+Para dejar los datos como estaban antes de la demostración, ejecutar:
+
+```http
+PATCH http://localhost:8000/mascotas/1/activar
+```
+
+utilizando el mismo Bearer Token, la respuesta esperada es:
+
+```json
+{
+  "id_mascota": 1,
+  "estado": "ACTIVA"
 }
 ```
 
-El tiempo puede variar levemente. Las evidencias principales son `intentos_usados: 3` y `exitoso: true`.
+Luego volver a ejecutar:
 
-8. Opcionalmente, mostrar los mensajes de reintento registrados por la API:
-
-```powershell
-docker compose logs server --tail=50
+```http
+GET http://localhost:8000/mascotas
 ```
 
-Las tres peticiones posteriores al login deben enviar el mismo JWT pegado manualmente en **Authorization > Bearer Token**.
+y comprobar que la mascota también aparece como `ACTIVA` cuando la petición es atendida por la otra réplica.
 
-Los endpoints `debug` validan el usuario actual y deben responder `401 Unauthorized` cuando no reciben un token válido.
+---
 
-Al terminar, recuperar las dos réplicas utilizadas por la demostración de replicación:
+### 6. ¿Por qué se demuestra escalabilidad horizontal?
 
-```powershell
-docker compose up -d --scale server=2 server
-docker compose up -d --no-deps --force-recreate balanceador
-```
+La evidencia conjunta es:
 
-## Demostración automática de replicación
+- Docker muestra dos réplicas del servicio `server`.
+- `GET /demo/instancia` devuelve identificadores de contenedores diferentes.
+- `X-Upstream-Addr` confirma que distintas solicitudes son atendidas por distintas instancias.
+- Los clientes utilizan siempre una única dirección.
+- Nginx distribuye las solicitudes entre las réplicas.
 
-La consigna solicita scripts para iniciar la aplicación y demostrar las tácticas:
+Esto demuestra **escalabilidad horizontal** porque el sistema aumenta su capacidad agregando nuevas instancias del backend.
 
-| Script | Uso |
-| --- | --- |
-| `scripts/andis-up.ps1` | Construye y levanta el ambiente con dos réplicas. |
-| `scripts/demo-replicacion.ps1` | Provoca una falla, comprueba la continuidad y recupera la réplica. |
+---
 
-Ejecutar la demostración automática:
+### 7. ¿Por qué se demuestra que el servicio es sin estado?
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\demo-replicacion.ps1
-```
+La evidencia conjunta es:
 
-## Demostración automática de reintentos
+- El usuario inicia sesión una sola vez.
+- El mismo JWT funciona en ambas réplicas.
+- Ninguna réplica necesita recordar localmente la sesión del usuario.
+- Una réplica puede modificar una mascota.
+- Otra réplica puede consultar inmediatamente el cambio.
+- Los datos persistentes se encuentran en PostgreSQL.
 
-El script `scripts/demo-reintentos.ps1` reproduce automáticamente la demostración de la colección **Pet-Core Re-intentos**.
+Un servicio sin estado no depende de información guardada en la memoria de una instancia para poder atender la siguiente solicitud.
 
-El script:
-
-1. deja temporalmente una sola réplica de FastAPI;
-2. inicia sesión y obtiene un JWT;
-3. configura dos fallas de conexión simuladas;
-4. ejecuta `GET /mascotas`;
-5. comprueba que la operación se recuperó en el tercer intento;
-6. muestra la cantidad de intentos, la duración y el resultado;
-7. restaura las dos réplicas aunque la demostración falle.
-
-Primero levantar el ambiente:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\andis-up.ps1
-```
-
-Ejecutar la demostración:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\demo-reintentos.ps1
-```
-
-Una ejecución correcta debe mostrar aproximadamente:
+En PetCore, la identidad del usuario viaja en cada petición mediante el JWT:
 
 ```text
-Intentos usados: 3
-Duracion: 1.5 segundos
-Exitoso: True
-Demostracion de reintentos exitosa.
+Authorization: Bearer TOKEN
 ```
 
-El tiempo puede cambiar levemente, pero el resultado debe ser exitoso y utilizar tres intentos.
+y los datos de negocio se almacenan en PostgreSQL.
+
+Por eso cualquier réplica puede atender cualquier solicitud.
+
+---
 
 ## Detener la aplicación
 

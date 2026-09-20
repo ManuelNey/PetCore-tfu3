@@ -1,0 +1,189 @@
+{
+  "info": {
+    "_postman_id": "1d5f595f-9c67-4bc9-bbdf-dc9b40a45d33",
+    "name": "UT3_TFU Escalado",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "46976271"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"correo\": \"ana.cliente@petcore.com\",\r\n  \"contrasena\": \"Password123!\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8000/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Replicas",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sIjoiQ0xJRU5URSIsInR5cGUiOiJhY2Nlc3MiLCJpc3MiOiJwZXQtY29yZS1hcGkiLCJhdWQiOiJwZXQtY29yZS1jbGllbnQiLCJpYXQiOjE3ODk5MTAyMDgsIm5iZiI6MTc4OTkxMDIwOCwiZXhwIjoxNzg5OTExMTA4LCJqdGkiOiJmZTkxOTY0NC05MjM1LTRmYTctYThhOS1lZGI3MGRkOGYxNmQifQ.lO4V4yRKtxphs3pRazYy1UyL6YvDcR8DwRP0JGWrQhY",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/demo/instancia",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "demo",
+            "instancia"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mascotas",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sIjoiQ0xJRU5URSIsInR5cGUiOiJhY2Nlc3MiLCJpc3MiOiJwZXQtY29yZS1hcGkiLCJhdWQiOiJwZXQtY29yZS1jbGllbnQiLCJpYXQiOjE3ODk5MTAyMDgsIm5iZiI6MTc4OTkxMDIwOCwiZXhwIjoxNzg5OTExMTA4LCJqdGkiOiJmZTkxOTY0NC05MjM1LTRmYTctYThhOS1lZGI3MGRkOGYxNmQifQ.lO4V4yRKtxphs3pRazYy1UyL6YvDcR8DwRP0JGWrQhY",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "mascotas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mascotas Inactivar",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sIjoiQ0xJRU5URSIsInR5cGUiOiJhY2Nlc3MiLCJpc3MiOiJwZXQtY29yZS1hcGkiLCJhdWQiOiJwZXQtY29yZS1jbGllbnQiLCJpYXQiOjE3ODk5MTAyMDgsIm5iZiI6MTc4OTkxMDIwOCwiZXhwIjoxNzg5OTExMTA4LCJqdGkiOiJmZTkxOTY0NC05MjM1LTRmYTctYThhOS1lZGI3MGRkOGYxNmQifQ.lO4V4yRKtxphs3pRazYy1UyL6YvDcR8DwRP0JGWrQhY",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas/1/inactivar",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "mascotas",
+            "1",
+            "inactivar"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mascotas",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sIjoiQ0xJRU5URSIsInR5cGUiOiJhY2Nlc3MiLCJpc3MiOiJwZXQtY29yZS1hcGkiLCJhdWQiOiJwZXQtY29yZS1jbGllbnQiLCJpYXQiOjE3ODk5MTAyMDgsIm5iZiI6MTc4OTkxMDIwOCwiZXhwIjoxNzg5OTExMTA4LCJqdGkiOiJmZTkxOTY0NC05MjM1LTRmYTctYThhOS1lZGI3MGRkOGYxNmQifQ.lO4V4yRKtxphs3pRazYy1UyL6YvDcR8DwRP0JGWrQhY",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "mascotas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mascotas Inactivar",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sIjoiQ0xJRU5URSIsInR5cGUiOiJhY2Nlc3MiLCJpc3MiOiJwZXQtY29yZS1hcGkiLCJhdWQiOiJwZXQtY29yZS1jbGllbnQiLCJpYXQiOjE3ODk5MTAyMDgsIm5iZiI6MTc4OTkxMDIwOCwiZXhwIjoxNzg5OTExMTA4LCJqdGkiOiJmZTkxOTY0NC05MjM1LTRmYTctYThhOS1lZGI3MGRkOGYxNmQifQ.lO4V4yRKtxphs3pRazYy1UyL6YvDcR8DwRP0JGWrQhY",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/mascotas/1/activar",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "mascotas",
+            "1",
+            "activar"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
