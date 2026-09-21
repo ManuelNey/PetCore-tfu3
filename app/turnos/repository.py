@@ -9,6 +9,7 @@ from app.turnos.excepciones import HorarioNoDisponibleError
 # Código SQLSTATE de Postgres para la violación de la restricción de
 # exclusión `no_superposicion` (dos turnos que se pisan en la agenda).
 SQLSTATE_EXCLUSION_VIOLATION = "23P01"
+FORZAR_FALLA_TRAS_INSERTAR_CONSULTA = {"activar": False}
 
 
 class TurnoRepository:
@@ -225,6 +226,14 @@ class TurnoRepository:
                 **datos,
             },
         ).mappings().first()
+
+        if FORZAR_FALLA_TRAS_INSERTAR_CONSULTA["activar"]:
+            FORZAR_FALLA_TRAS_INSERTAR_CONSULTA["activar"] = False
+            raise RuntimeError(
+                "Falla simulada para la demo de ACID: la consulta clínica "
+                "ya se insertó en esta transacción, pero el turno todavía "
+                "no se pasó a ATENDIDO ni hubo commit."
+            )
 
         actualizar_turno = text(
             "UPDATE turno SET estado = 'ATENDIDO' WHERE id_turno = :id_turno"
