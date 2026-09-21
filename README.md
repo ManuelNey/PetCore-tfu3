@@ -415,6 +415,8 @@ Debería mantenerse en "CONFIRMADO"
 
 Esto demuestra la atomicidad de la transacción: aunque la operación haya comenzado a modificar la base, al producirse la falla los cambios se revierten y no queda un estado intermedio.
 
+---
+
 ## Datos de prueba
 
 La primera vez que se crea el volumen de PostgreSQL, `db/init/` carga el esquema y los datos de prueba. La contraseña de estos usuarios es `Password123!`:
