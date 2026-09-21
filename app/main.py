@@ -103,8 +103,7 @@ def simular_falla_registrar_consulta(
     return {
         "mensaje": (
             "La próxima llamada a POST /turnos/{id_turno}/consulta va a "
-            "fallar a mitad de camino (después del INSERT de la consulta, "
-            "antes del UPDATE del turno y antes del commit)."
+            "fallar a mitad de camino"
         )
     }
 
