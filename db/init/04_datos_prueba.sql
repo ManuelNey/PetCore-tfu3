@@ -102,7 +102,6 @@ WHERE correo = 'bruno.vet@petcore.com';
 INSERT INTO turno
     (id_mascota, id_veterinario, id_tipo_atencion, id_usuario_creador,
      fecha_hora_inicio, fecha_hora_fin, duracion_minutos, canal_origen)
-     VALUES (1, 1, 1, 1, '2026-10-01 10:00:00-03', '2026-10-01 10:30:00-03', 30, 'AUTOGESTION');
 SELECT
     m.id_mascota,
     v.id_usuario,
