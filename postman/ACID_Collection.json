@@ -1,53 +1,33 @@
 {
   "info": {
-    "name": "Pet-Core Demo ACID",
-    "description": "Colección para la demo de la sección 4 (ACID o BASE) de README-TFU3.md. Incluye el login y los 4 pasos de la demo, en orden. Cada request tiene asserts automáticos (pestaña Test) para poder correr toda la colección con el botón 'Run' y que quede documentado en verde.\n\nRequisitos: el proyecto levantado en {{base_url}} y la base con los datos de prueba (04_datos_prueba.sql) sin modificar. Si el id del turno de prueba no es 1, cambiar la variable de colección `id_turno`.",
+    "name": "Pet-Core — Demo ACID (Atomicidad)",
+    "description": "Colección para la demo de la sección 4 (ACID o BASE) de README-TFU3.md. Reserva un turno nuevo como cliente y corre la demo de atomicidad como veterinario sobre ese turno, así se puede correr las veces que haga falta sin tocar la base a mano. Cada request tiene asserts automáticos (pestaña Test) para poder correr toda la colección con el botón 'Run'.\n\nRequisito: el proyecto levantado en {{base_url}} con los datos de prueba (04_datos_prueba.sql) sin modificar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:8000",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "id_turno",
-      "value": "2",
-      "type": "string"
-    },
-    {
-      "key": "estado_antes",
-      "value": "",
-      "type": "string"
-    }
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "token_cliente", "value": "", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "id_turno", "value": "", "type": "string" },
+    { "key": "fecha_turno", "value": "", "type": "string" },
+    { "key": "hora_turno", "value": "", "type": "string" },
+    { "key": "estado_antes", "value": "", "type": "string" }
   ],
   "item": [
     {
-      "name": "0 - Login (veterinario)",
+      "name": "0 - Login (cliente)",
       "request": {
         "method": "POST",
         "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
+          { "key": "Content-Type", "value": "application/json" }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"correo\": \"bruno.vet@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+          "raw": "{\n  \"correo\": \"ana.cliente@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
         },
         "url": "{{base_url}}/auth/login",
-        "description": "Autentica al veterinario dueño del turno de prueba y guarda el token en la variable de colección `token` para que lo usen los pasos siguientes."
+        "description": "Autentica a la clienta de prueba (dueña de la mascota Firulais) y guarda el token en `token_cliente`, necesario para reservar el turno del próximo paso."
       },
       "event": [
         {
@@ -57,19 +37,129 @@
             "exec": [
               "(function () {",
               "    const data = pm.response.json();",
-              "    ",
+              "",
               "    pm.test(\"Login exitoso (200)\", () => {",
               "        pm.response.to.have.status(200);",
               "    });",
-              "    ",
+              "",
+              "    pm.test(\"El rol es CLIENTE\", () => {",
+              "        pm.expect(data.usuario.rol).to.eql(\"CLIENTE\");",
+              "    });",
+              "",
+              "    pm.collectionVariables.set(\"token_cliente\", data.access_token);",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 - Reservar turno (cliente)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_cliente}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id_mascota\": 1,\n  \"id_tipo_atencion\": 1,\n  \"id_veterinario\": 2,\n  \"fecha\": \"{{fecha_turno}}\",\n  \"hora_inicio\": \"{{hora_turno}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{base_url}}/turnos",
+        "description": "Crea un turno CONFIRMADO nuevo (Firulais, Consulta general, con Bruno) en un horario futuro elegido al azar por el pre-request script, dentro del horario de atención de Bruno (lunes a viernes, 09:00-13:00). El id del turno creado queda guardado en `id_turno` para el resto de la colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    function proximoDiaHabil(diasBase) {",
+              "        const fecha = new Date();",
+              "        fecha.setDate(fecha.getDate() + diasBase);",
+              "        while (fecha.getDay() === 0 || fecha.getDay() === 6) {",
+              "            fecha.setDate(fecha.getDate() + 1);",
+              "        }",
+              "        return fecha;",
+              "    }",
+              "",
+              "    const diasAleatorios = 10 + Math.floor(Math.random() * 50);",
+              "    const fecha = proximoDiaHabil(diasAleatorios);",
+              "",
+              "    const horarios = [\"09:00\", \"09:30\", \"10:00\", \"10:30\", \"11:00\", \"11:30\", \"12:00\", \"12:30\"];",
+              "    const horaElegida = horarios[Math.floor(Math.random() * horarios.length)];",
+              "",
+              "    const yyyy = fecha.getFullYear();",
+              "    const mm = String(fecha.getMonth() + 1).padStart(2, \"0\");",
+              "    const dd = String(fecha.getDate()).padStart(2, \"0\");",
+              "",
+              "    pm.collectionVariables.set(\"fecha_turno\", `${yyyy}-${mm}-${dd}`);",
+              "    pm.collectionVariables.set(\"hora_turno\", `${horaElegida}:00`);",
+              "})();"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "",
+              "    pm.test(\"Turno reservado (201)\", () => {",
+              "        pm.response.to.have.status(201);",
+              "    });",
+              "",
+              "    pm.test(\"El turno queda CONFIRMADO\", () => {",
+              "        pm.expect(data.estado).to.eql(\"CONFIRMADO\");",
+              "    });",
+              "",
+              "    pm.collectionVariables.set(\"id_turno\", String(data.id_turno));",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Login (veterinario)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"bruno.vet@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{base_url}}/auth/login",
+        "description": "Autentica al veterinario dueño del turno recién creado y guarda el token en `token` para los pasos siguientes."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "",
+              "    pm.test(\"Login exitoso (200)\", () => {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "",
               "    pm.test(\"Devuelve un access_token\", () => {",
               "        pm.expect(data.access_token).to.be.a(\"string\");",
               "    });",
-              "    ",
+              "",
               "    pm.test(\"El rol es VETERINARIO\", () => {",
               "        pm.expect(data.usuario.rol).to.eql(\"VETERINARIO\");",
               "    });",
-              "    ",
+              "",
               "    pm.collectionVariables.set(\"token\", data.access_token);",
               "})();"
             ]
@@ -78,199 +168,128 @@
       ]
     },
     {
-      "name": "Demo ACID — atomicidad de registrar consulta",
-      "item": [
+      "name": "3 - Estado ANTES",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{base_url}}/debug/estado-turno/{{id_turno}}",
+        "description": "Foto del estado del turno antes de intentar la operación. Se guarda para comparar contra el paso 6."
+      },
+      "event": [
         {
-          "name": "1 - Estado ANTES",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": "{{base_url}}/debug/estado-turno/{{id_turno}}",
-            "description": "Foto del estado del turno antes de intentar la operación. Se guarda para comparar contra el paso 4."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "    const data = pm.response.json();",
-                  "    ",
-                  "    pm.test(\"Responde 200\", () => {",
-                  "        pm.response.to.have.status(200);",
-                  "    });",
-                  "    ",
-                  "    pm.test(\"El turno está CONFIRMADO y sin consultas registradas\", () => {",
-                  "        pm.expect(data.estado_turno).to.eql(\"CONFIRMADO\");",
-                  "        pm.expect(data.consultas_clinicas_registradas).to.eql(0);",
-                  "    });",
-                  "    ",
-                  "    pm.collectionVariables.set(\"estado_antes\", JSON.stringify(data));",
-                  "})();"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "2 - Armar la falla",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": "{{base_url}}/debug/simular-falla-registrar-consulta",
-            "description": "Arma la falla para la próxima llamada a POST /turnos/{id}/consulta. Se desactiva sola después de disparar una vez."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "    pm.test(\"Falla armada correctamente (200)\", () => {",
-                  "        pm.response.to.have.status(200);",
-                  "    });",
-                  "})();"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "3 - Registrar consulta (debe fallar)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"motivo\": \"Chequeo\",\n  \"diagnostico\": \"Sano\",\n  \"observaciones\": null,\n  \"tratamiento\": null,\n  \"recomendaciones\": null\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{base_url}}/turnos/{{id_turno}}/consulta",
-            "description": "Endpoint REAL de negocio (no de debug). Con la falla armada en el paso 2, debe cortarse a mitad de camino."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "    pm.test(\"La operación se interrumpe a mitad de camino (500)\", () => {",
-                  "        pm.response.to.have.status(500);",
-                  "    });",
-                  "})();"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "4 - Estado DESPUÉS (debe ser igual al paso 1)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": "{{base_url}}/debug/estado-turno/{{id_turno}}",
-            "description": "Repite exactamente la misma consulta del paso 1. Si la operación fue atómica, el resultado tiene que ser idéntico."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "    const data = pm.response.json();",
-                  "    const antes = JSON.parse(pm.collectionVariables.get(\"estado_antes\"));",
-                  "    ",
-                  "    pm.test(\"Responde 200\", () => {",
-                  "        pm.response.to.have.status(200);",
-                  "    });",
-                  "    ",
-                  "    pm.test(\"El estado es IDÉNTICO al del paso 1 (atomicidad probada)\", () => {",
-                  "        pm.expect(data).to.eql(antes);",
-                  "    });",
-                  "})();"
-                ]
-              }
-            }
-          ]
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "",
+              "    pm.test(\"Responde 200\", () => {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "",
+              "    pm.test(\"El turno está CONFIRMADO y sin consultas registradas\", () => {",
+              "        pm.expect(data.estado_turno).to.eql(\"CONFIRMADO\");",
+              "        pm.expect(data.consultas_clinicas_registradas).to.eql(0);",
+              "    });",
+              "",
+              "    pm.collectionVariables.set(\"estado_antes\", JSON.stringify(data));",
+              "})();"
+            ]
+          }
         }
       ]
     },
     {
-      "name": "Opcional — confirmar que el sistema sigue funcionando",
-      "item": [
+      "name": "4 - Armar la falla",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{base_url}}/debug/simular-falla-registrar-consulta",
+        "description": "Arma la falla para la próxima llamada a POST /turnos/{id}/consulta. Se desactiva sola después de disparar una vez."
+      },
+      "event": [
         {
-          "name": "5 (opcional) - Registrar consulta normal (sin falla armada)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"motivo\": \"Chequeo\",\n  \"diagnostico\": \"Sano\",\n  \"observaciones\": null,\n  \"tratamiento\": null,\n  \"recomendaciones\": null\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{base_url}}/turnos/{{id_turno}}/consulta",
-            "description": "Mismo request que el paso 3, pero SIN volver a armar la falla. Sirve para mostrar que, terminada la demo, el endpoint real sigue funcionando con normalidad."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "    pm.test(\"Sin la falla armada, la operación se completa (201)\", () => {",
-                  "        pm.response.to.have.status(201);",
-                  "    });",
-                  "})();"
-                ]
-              }
-            }
-          ]
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    pm.test(\"Falla armada correctamente (200)\", () => {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 - Registrar consulta (debe fallar)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"motivo\": \"Chequeo\",\n  \"diagnostico\": \"Sano\",\n  \"observaciones\": null,\n  \"tratamiento\": null,\n  \"recomendaciones\": null\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{base_url}}/turnos/{{id_turno}}/consulta",
+        "description": "Endpoint REAL de negocio (no de debug). Con la falla armada en el paso 4, debe cortarse a mitad de camino."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    pm.test(\"La operación se interrumpe a mitad de camino (500)\", () => {",
+              "        pm.response.to.have.status(500);",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6 - Estado DESPUÉS (debe ser igual al paso 3)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{base_url}}/debug/estado-turno/{{id_turno}}",
+        "description": "Repite exactamente la misma consulta del paso 3. Si la operación fue atómica, el resultado tiene que ser idéntico."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    const antes = JSON.parse(pm.collectionVariables.get(\"estado_antes\"));",
+              "",
+              "    pm.test(\"Responde 200\", () => {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "",
+              "    pm.test(\"El estado es IDÉNTICO al del paso 3 (atomicidad probada)\", () => {",
+              "        pm.expect(data).to.eql(antes);",
+              "    });",
+              "})();"
+            ]
+          }
         }
       ]
     }
