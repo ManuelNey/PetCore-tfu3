@@ -328,6 +328,9 @@ Por eso cualquier réplica puede atender cualquier solicitud.
 
 ### 8. Demostración de atomicidad ACID
 
+Antes de probar la demo, es necesario cerrar una de las réplicas. Porque sino es probable que una de las réplicas siga funcionando y no demuestre una falla.
+Se puede hacer directo desde docker deteniendo uno de los servers en ejecución
+
 Esta demostración verifica la propiedad de **atomicidad** de las transacciones de PostgreSQL.
 
 En Pet-Core, registrar una consulta clínica implica realizar varios cambios sobre la base de datos. Estos cambios forman parte de una misma operación transaccional, por lo que, si la operación falla, los cambios realizados deben revertirse y la base debe quedar en el mismo estado que tenía antes de comenzar.
