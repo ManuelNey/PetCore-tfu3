@@ -16,6 +16,7 @@ Este proyecto utiliza una API REST desarrollada con FastAPI para demostrar táct
 - [Demostración de reintentos con Postman](#demostración-de-reintentos-con-postman)
 - [Demostración automática de replicación](#demostración-automática-de-replicación)
 - [Demostración automática de reintentos](#demostración-automática-de-reintentos)
+- [Demostración de atomicidad ACID](#demostración-de-atomicidad-acid)
 - [Detener la aplicación](#detener-la-aplicación)
 - [Datos de prueba](#datos-de-prueba)
 
@@ -324,13 +325,95 @@ Por eso cualquier réplica puede atender cualquier solicitud.
 
 ---
 
-## Detener la aplicación
 
-```powershell
-docker compose down
+### 8. Demostración de atomicidad ACID
+
+Esta demostración verifica la propiedad de **atomicidad** de las transacciones de PostgreSQL.
+
+En Pet-Core, registrar una consulta clínica implica realizar varios cambios sobre la base de datos. Estos cambios forman parte de una misma operación transaccional, por lo que, si la operación falla, los cambios realizados deben revertirse y la base debe quedar en el mismo estado que tenía antes de comenzar.
+
+La demostración se realiza siguiendo este flujo:
+
+```text
+Login como cliente
+       ↓
+Reservar un turno
+       ↓
+Login como veterinario
+       ↓
+Consultar estado del turno
+       ↓
+Armar falla
+       ↓
+Registrar consulta
+       ↓
+Falla intencional
+       ↓
+Consultar estado nuevamente
+       ↓
+El turno continúa CONFIRMADO
+```
+Iniciar sesión como cliente:
+Ejecutar:
+
+```http
+POST /auth/login
+```
+con las credenciales del cliente:
+```json
+{
+  "correo": "ana.cliente@petcore.com",
+  "contrasena": "Password123!"
+}
+```
+Luego con el token del cliente, ejecutar:
+```http
+POST /turnos
+```
+Guardar el id del turno recién creado, debería ser 2. El mismo debe quedar en estado "CONFIRMADO".
+
+Luego iniciar sesión cómo veterinario:
+```http
+POST /auth/login
+```
+Una vez iniciado sesión con las credenciales de veterinario. Se puede proceder a forzar una falla para comprobar que el sistema cumple con ACID.
+
+Primero consultar el estado inicial del turno:
+```http
+GET /debug/estado-turno/{{id_turno}}
+```
+La respuesta debería indicar:
+
+```json
+estado_turno = CONFIRMADO
+```
+Después, hay que ejecutar el endpoint que permite forzar la falla a la hora de intentar dejar la consulta como "ATENDIDO" 
+Ejecutar:
+
+```http
+POST /debug/simular-falla-registrar-consulta
+```
+Luego, hay que intentar registrar la consulta, debido a la falla anterior, al ejecutar:
+
+```http
+POST /turnos/{{id_turno}}/consulta
+```
+La respuesta esperada es:
+
+```json
+500 Internal Server Error
+```
+Ya que debido a la falla, no se puedo actualizar el estado de la consulta correctamente
+
+Pero para verificar que realmente cumple con ACID, hay que verificar que el estado genuinamente no ha cambiado. Para eso ejecutar otra vez:
+
+```http
+GET /debug/estado-turno/{{id_turno}}
 ```
 
-Este comando conserva el volumen de PostgreSQL. `docker compose down --volumes` elimina también los datos.
+Debería mantenerse en "CONFIRMADO"
+
+Esto demuestra la atomicidad de la transacción: aunque la operación haya comenzado a modificar la base, al producirse la falla los cambios se revierten y no queda un estado intermedio.
 
 ## Datos de prueba
 
