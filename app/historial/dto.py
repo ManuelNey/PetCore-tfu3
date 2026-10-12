@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -94,3 +95,19 @@ class HistorialVeterinarioResponse(BaseModel):
     ultimo_intento: datetime
     advertencias: list[str]
     consultas: list[ConsultaRecuperada | ConsultaNoRecuperada]
+
+# --- Exportación a PDF (Asynchronous Request-Reply) ---
+
+class ExportacionIniciadaResponse(BaseModel):
+    id_tarea: UUID
+    estado: str
+
+
+class ExportacionEstadoResponse(BaseModel):
+    id_tarea: UUID
+    estado: str
+    fecha_creacion: datetime
+    # Solo cuando está LISTO: el enlace para descargar el PDF.
+    enlace_descarga: str | None = None
+    # Solo cuando está en ERROR.
+    error: str | None = None

@@ -9,5 +9,6 @@ dependencies = [
     "pwdlib[bcrypt]>=0.3.1",
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.13.0",
+    "reportlab>=5.0.1",
     "sqlmodel>=0.0.39",
 ]
