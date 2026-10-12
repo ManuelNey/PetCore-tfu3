@@ -47,6 +47,17 @@ class Settings(BaseSettings):
         le=1440,
     )
 
+    # Exportación del historial a PDF
+    # Carpeta donde se guardan los PDF.
+    EXPORTACIONES_DIR: str = "/app/exportaciones"
+
+    # Pausa antes de generar el PDF, solo para la demo (así se alcanza a ver el
+    # estado PENDIENTE). En un uso real debe ser 0.
+    EXPORTACION_RETARDO_SEGUNDOS: float = 0
+
+    # Cuántos segundos dura el enlace de descarga (Valet Key). 600 = 10 minutos.
+    VALET_KEY_SEGUNDOS: int = 600
+
     @model_validator(mode="before")
     @classmethod
     def check_postgres_password(

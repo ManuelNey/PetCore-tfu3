@@ -30,7 +30,21 @@ services:
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
       LOGIN_MAX_INTENTOS: 5
       LOGIN_BLOQUEO_MINUTOS: 15
-    
+
+      # Exportación del historial a PDF. La pausa es solo para la demo: permite
+      # ver el estado PENDIENTE. Poner 0 para generar sin demora.
+      EXPORTACIONES_DIR: /app/exportaciones
+      EXPORTACION_RETARDO_SEGUNDOS: 5
+
+      # Valet Key: validez del enlace de descarga. 10 minutos por defecto; para
+      # demostrar el vencimiento, definir VALET_KEY_SEGUNDOS=10 antes de levantar.
+      VALET_KEY_SEGUNDOS: ${VALET_KEY_SEGUNDOS:-600}
+
+    # Carpeta donde se guardan los PDF. Se comparte entre las dos copias de la API
+    # para que cualquiera pueda entregar un PDF que generó la otra.
+    volumes:
+      - exportaciones:/app/exportaciones
+
     # Esperar a que PostgreSQL este saludable antes de iniciar FastAPI
     depends_on:
       db:
@@ -87,6 +101,7 @@ services:
 # Los datos permanecen aunque se elimine el contenedor, mientras no se elimine el volumen
 volumes:
   postgres_data:
+  exportaciones:
 
 # Acá se declara el archivo de contraseña como un secreto de Docker Compose
 secrets:
