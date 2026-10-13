@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from app.cache import cache
 from app.database import get_session
 from app.Middleware.middleware import requerir_rol
 from app.especies.dto import EspecieResponse
@@ -16,13 +17,21 @@ router = APIRouter(
 def crear_service(session):
     repository = EspecieRepository(session)
 
-    return EspecieService(repository)
+    return EspecieService(
+        repository=repository,
+        cache=cache,
+    )
 
 
-@router.get("", response_model=list[EspecieResponse])
+@router.get(
+    "",
+    response_model=list[EspecieResponse],
+)
 def listar_especies(
     session=Depends(get_session),
-    _usuario: dict = Depends(requerir_rol("CLIENTE")),
+    _usuario: dict = Depends(
+        requerir_rol("CLIENTE")
+    ),
 ):
     service = crear_service(session)
 

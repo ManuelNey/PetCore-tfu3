@@ -26,6 +26,12 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
 
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      CACHE_TTL_SECONDS: 300
+
       JWT_SECRET_KEY_FILE: /run/secrets/jwt-secret
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
       LOGIN_MAX_INTENTOS: 5
@@ -49,6 +55,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     
     # Deja a FastAPI leer la contraseña
     secrets:
@@ -64,6 +72,23 @@ services:
       - ./nginx/andis.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - server
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+
+    restart: always
+
+    # Redis solamente es accesible dentro de la red de Docker
+    expose:
+      - "6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
       
   # Servicio de PostgreSQL
   db:
