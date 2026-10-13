@@ -21,6 +21,16 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD_FILE: str | None = None
     POSTGRES_DB: str
 
+    # Redis
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+
+    CACHE_TTL_SECONDS: int = Field(
+        default=300,
+        ge=1,
+    )
+
     # JWT
     JWT_SECRET_KEY: str = Field(
         min_length=32,
