@@ -26,16 +26,38 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
 
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      CACHE_TTL_SECONDS: 300
+
       JWT_SECRET_KEY_FILE: /run/secrets/jwt-secret
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 15
       LOGIN_MAX_INTENTOS: 5
       LOGIN_BLOQUEO_MINUTOS: 15
-    
-    # Esperar a que PostgreSQL este saludable antes de iniciar FastAPI
+
+      # Exportación del historial a PDF. La pausa es solo para la demo: permite
+      # ver el estado PENDIENTE. Poner 0 para generar sin demora.
+      EXPORTACIONES_DIR: /app/exportaciones
+      EXPORTACION_RETARDO_SEGUNDOS: 5
+
+      # Valet Key: validez del enlace de descarga. 10 minutos por defecto; para
+      # demostrar el vencimiento, definir VALET_KEY_SEGUNDOS=10 antes de levantar.
+      VALET_KEY_SEGUNDOS: ${VALET_KEY_SEGUNDOS:-600}
+
+    # Carpeta donde se guardan los PDF. Se comparte entre las dos copias de la API
+    # para que cualquiera pueda entregar un PDF que generó la otra.
+    volumes:
+      - exportaciones:/app/exportaciones
+
+   
+   # Esperar a que PostgreSQL y Redis estén saludables antes de iniciar FastAPI
     depends_on:
       db:
         condition: service_healthy
-
+      redis:
+        condition: service_healthy
     # Deja a FastAPI leer la contraseña
     secrets:
       - db-password
@@ -60,6 +82,23 @@ services:
       - ./nginx/andis.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - server
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+
+    restart: always
+
+    # Redis solamente es accesible dentro de la red de Docker
+    expose:
+      - "6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
       
   # Servicio de PostgreSQL
   db:
@@ -97,6 +136,7 @@ services:
 # Los datos permanecen aunque se elimine el contenedor, mientras no se elimine el volumen
 volumes:
   postgres_data:
+  exportaciones:
 
 # Acá se declara el archivo de contraseña como un secreto de Docker Compose
 secrets:

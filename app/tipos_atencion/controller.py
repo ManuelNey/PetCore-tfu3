@@ -1,13 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
 
+from app.cache import cache
 from app.database import get_session
 from app.Middleware.middleware import requerir_rol
 from app.tipos_atencion.dto import (
     TipoAtencionCreate,
     TipoAtencionResponse,
 )
-from app.tipos_atencion.repository import TipoAtencionRepository
-from app.tipos_atencion.service import TipoAtencionService
+from app.tipos_atencion.repository import (
+    TipoAtencionRepository,
+)
+from app.tipos_atencion.service import (
+    TipoAtencionService,
+)
 
 
 router = APIRouter(
@@ -19,13 +29,24 @@ router = APIRouter(
 def crear_service(session):
     repository = TipoAtencionRepository(session)
 
-    return TipoAtencionService(repository)
+    return TipoAtencionService(
+        repository=repository,
+        cache=cache,
+    )
 
 
-@router.get("", response_model=list[TipoAtencionResponse])
+@router.get(
+    "",
+    response_model=list[TipoAtencionResponse],
+)
 def listar_tipos_atencion(
     session=Depends(get_session),
-    _usuario: dict = Depends(requerir_rol("CLIENTE", "VETERINARIO")),
+    _usuario: dict = Depends(
+        requerir_rol(
+            "CLIENTE",
+            "VETERINARIO",
+        )
+    ),
 ):
     service = crear_service(session)
 
@@ -45,8 +66,11 @@ def crear_tipo_atencion(
 
     try:
         return service.crear(datos)
+
     except ValueError as error:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
+            status_code=(
+                status.HTTP_409_CONFLICT
+            ),
             detail=str(error),
         ) from error

@@ -21,6 +21,16 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD_FILE: str | None = None
     POSTGRES_DB: str
 
+    # Redis
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+
+    CACHE_TTL_SECONDS: int = Field(
+        default=300,
+        ge=1,
+    )
+
     # JWT
     JWT_SECRET_KEY: str = Field(
         min_length=32,
@@ -46,6 +56,17 @@ class Settings(BaseSettings):
         ge=1,
         le=1440,
     )
+
+    # Exportación del historial a PDF
+    # Carpeta donde se guardan los PDF.
+    EXPORTACIONES_DIR: str = "/app/exportaciones"
+
+    # Pausa antes de generar el PDF, solo para la demo (así se alcanza a ver el
+    # estado PENDIENTE). En un uso real debe ser 0.
+    EXPORTACION_RETARDO_SEGUNDOS: float = 0
+
+    # Cuántos segundos dura el enlace de descarga (Valet Key). 600 = 10 minutos.
+    VALET_KEY_SEGUNDOS: int = 600
 
     @model_validator(mode="before")
     @classmethod
