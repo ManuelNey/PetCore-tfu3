@@ -51,17 +51,27 @@ services:
     volumes:
       - exportaciones:/app/exportaciones
 
-    # Esperar a que PostgreSQL este saludable antes de iniciar FastAPI
+   
+   # Esperar a que PostgreSQL y Redis estén saludables antes de iniciar FastAPI
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    
     # Deja a FastAPI leer la contraseña
     secrets:
       - db-password
       - jwt-secret
+
+    # Comprueba cada 10 segundos si esta réplica puede atender tráfico real
+    # (si /health falla, por ejemplo porque no llega a Postgres, Docker la
+    # marca como "unhealthy" y deja de contarla como disponible).
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # Balancea las solicitudes entre las réplicas de FastAPI
   balanceador:
