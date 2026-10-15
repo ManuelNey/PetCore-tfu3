@@ -1,0 +1,74 @@
+{
+  "info": {
+    "_postman_id": "3f6a8d2e-9c1b-4e7a-9a2d-6f1d2b4c5a8e",
+    "name": "Pet-Core Health Endpoint Monitoring",
+    "description": "Demuestra que /health refleja el estado real de la aplicacion (si puede o no hablar con la base de datos), y que Docker usa ese estado para marcar la replica como healthy/unhealthy. Algunos pasos requieren ejecutar comandos de Docker a mano en la terminal, indicados en la descripcion de cada request.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Health check con la base arriba",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["health"]
+        },
+        "description": "Con la app recien levantada (scripts/andis-up.ps1), debe responder 200 con {\"status\": \"ok\"}."
+      },
+      "response": []
+    },
+    {
+      "name": "2 - Simular caida de la base (paso manual)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["health"]
+        },
+        "description": "Antes de enviar esta peticion, correr en una terminal: \n\ndocker compose stop db\n\nLuego enviar esta peticion. Debe responder 503, ya que /health ejecuta un SELECT 1 real contra Postgres y ya no puede conectarse."
+      },
+      "response": []
+    },
+    {
+      "name": "3 - Confirmar que Docker marca la replica unhealthy (paso manual)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["health"]
+        },
+        "description": "No hace falta enviar esta peticion para comprobar este paso: en la terminal, correr \n\ndocker compose ps server\n\ny esperar unos segundos (interval=10s, retries=3). La columna de estado debe pasar de \"healthy\" a \"unhealthy\" sin que nadie haya reiniciado el contenedor server."
+      },
+      "response": []
+    },
+    {
+      "name": "4 - Restaurar la base y confirmar recuperacion (paso manual + peticion)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["health"]
+        },
+        "description": "Antes de enviar esta peticion, correr en una terminal: \n\ndocker compose start db\n\nEsperar unos segundos y enviar esta peticion. Debe volver a responder 200, y docker compose ps server debe volver a mostrar \"healthy\", sin haber reiniciado el contenedor server en ningun momento."
+      },
+      "response": []
+    }
+  ]
+}

@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from psycopg import OperationalError
 from sqlmodel import Session, text
 from app.database import FALLAR_PROXIMAS_CONEXIONES, ULTIMO_INTENTO_CONEXION, get_session
 
@@ -70,9 +71,15 @@ app.include_router(demo_router)
 def hello():
     return "Hello, Docker!"
 
-#Verifica que la API esté funcionando correctamente.
+#Verifica que la API esté funcionando correctamente, incluyendo la conexión a la base.
+#Si la base no responde, devuelve 503 para que Docker/Nginx dejen de mandarle tráfico
+#a esta réplica (ver healthcheck del servicio "server" en compose.yaml).
 @app.get("/health")
-def health() -> dict:
+def health(session: Session = Depends(get_session)) -> dict:
+    try:
+        session.execute(text("SELECT 1"))
+    except OperationalError:
+        raise HTTPException(status_code=503, detail="Base de datos no disponible.")
     return {"status": "ok"}
 
 # Solo para demostrar los reintentos de conexión a la base (ver app/database.py).
