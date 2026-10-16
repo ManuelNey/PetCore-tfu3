@@ -65,9 +65,11 @@ services:
 
   # Balancea las solicitudes entre las réplicas de FastAPI
   balanceador:
-    image: nginx:alpine
+    build:
+      context: ./nginx          # antes: image: nginx:alpine
     ports:
-      - "8000:8080"
+      - "8000:8080"             # HTTP (igual que antes)
+      - "8443:8443"             # HTTPS: el gateway termina TLS
     volumes:
       - ./nginx/andis.conf:/etc/nginx/nginx.conf:ro
     depends_on:

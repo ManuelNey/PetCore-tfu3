@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, text
 from app.database import FALLAR_PROXIMAS_CONEXIONES, ULTIMO_INTENTO_CONEXION, get_session
+from app.configuracion.controller import router as configuracion_router
 
 from app.turnos.repository import FORZAR_FALLA_TRAS_INSERTAR_CONSULTA
 from app.Middleware.middleware import JWTMiddleware, obtener_usuario_actual
@@ -65,6 +66,7 @@ app.include_router(agenda_router)
 app.include_router(historial_router)
 app.include_router(pacientes_router)
 app.include_router(demo_router)
+app.include_router(configuracion_router)
 
 @app.get("/")
 def hello():

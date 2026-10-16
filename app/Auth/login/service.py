@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
-
+from app.configuracion.service import ConfiguracionService
 import jwt
 from pwdlib import PasswordHash
 from pwdlib.exceptions import UnknownHashError
@@ -25,8 +25,9 @@ ALGORITMO_JWT = "HS256"
 
 
 class LoginService:
-    def __init__(self, repository: LoginRepository):
+    def __init__(self, repository: LoginRepository, configuracion: ConfiguracionService):
         self.repository = repository
+        self.configuracion = configuracion
 
     def iniciar_sesion(
         self,
@@ -95,9 +96,18 @@ class LoginService:
             )
         except (UnknownHashError, TypeError, ValueError):
             contrasena_correcta = False
-
-        # Procesar contraseña incorrecta.
+        
         if not contrasena_correcta:
+            # Los límites se leen de la tabla configuracion en cada intento
+            # fallido (External Configuration Store), así un cambio hecho por
+            # el administrador se aplica sin reiniciar la API.
+            max_intentos = self.configuracion.obtener_entero(
+                "LOGIN_MAX_INTENTOS"
+            )
+            bloqueo_minutos = self.configuracion.obtener_entero(
+                "LOGIN_BLOQUEO_MINUTOS"
+            )
+
             nuevos_intentos = (
                 usuario["intentos_inicio"] + 1
             )
@@ -105,9 +115,9 @@ class LoginService:
             bloqueado_hasta = None
             resultado = "FALLIDO"
 
-            if nuevos_intentos >= settings.LOGIN_MAX_INTENTOS:
+            if nuevos_intentos >= max_intentos:              # antes: settings.LOGIN_MAX_INTENTOS
                 bloqueado_hasta = ahora + timedelta(
-                    minutes=settings.LOGIN_BLOQUEO_MINUTOS
+                    minutes=bloqueo_minutos                  # antes: settings.LOGIN_BLOQUEO_MINUTOS
                 )
 
                 nuevos_intentos = 0
