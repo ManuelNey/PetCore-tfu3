@@ -4,6 +4,8 @@ from fastapi import (
     HTTPException,
     status,
 )
+from app.configuracion.repository import ConfiguracionRepository
+from app.configuracion.service import ConfiguracionService
 
 from app.database import get_session
 from app.Auth.login.dto import (
@@ -22,8 +24,11 @@ router = APIRouter(
 
 def crear_service(session):
     repository = LoginRepository(session)
+    configuracion = ConfiguracionService(
+        ConfiguracionRepository(session)
+    )
 
-    return LoginService(repository)
+    return LoginService(repository, configuracion)
 
 
 @router.post(

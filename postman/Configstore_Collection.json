@@ -1,0 +1,506 @@
+{
+  "info": {
+    "name": "Pet-Core — External Configuration Store",
+    "description": "Demuestra que los límites de seguridad del login se leen de PostgreSQL y se pueden cambiar en caliente, sin reconstruir la imagen ni reiniciar los contenedores.\n\nSecuencia: el administrador lee LOGIN_MAX_INTENTOS (5) → una cuenta nueva falla 2 logins → el administrador baja el límite a 3 → el 3er fallo bloquea la cuenta → el login con la clave correcta ya no entra (con el límite original habría entrado) → se restaura el valor.\n\nCada request tiene asserts (pestaña Test); se puede correr entera con 'Run'. Es repetible: cada corrida registra una cuenta con correo aleatorio.\n\nRequisito: la API levantada en {{base_url}} con los datos de prueba (04_datos_prueba.sql) y la tabla `configuracion` (06_configuracion.sql).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token_admin",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "token_cliente",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "correo_demo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "doc_demo",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0 - Login (administrador)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth/login",
+        "description": "Inicia sesión como administrador y guarda el token en `token_admin`.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"carla.admin@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Login exitoso (200)\", () => pm.response.to.have.status(200));",
+              "    pm.test(\"El rol es ADMINISTRADOR\", () => pm.expect(data.usuario.rol).to.eql(\"ADMINISTRADOR\"));",
+              "    pm.collectionVariables.set(\"token_admin\", data.access_token);",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 - Consultar LOGIN_MAX_INTENTOS (debe ser 5)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          }
+        ],
+        "url": "{{base_url}}/admin/configuracion/LOGIN_MAX_INTENTOS",
+        "description": "Lee el límite actual desde el almacén externo (tabla `configuracion`). Para que la demo tenga sentido tiene que arrancar en 5. Si una corrida anterior se cortó a la mitad y quedó en otro valor, ejecutar a mano el paso 8 (restaurar)."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+              "    pm.test(\"LOGIN_MAX_INTENTOS vale 5 al inicio\", () => pm.expect(data.valor).to.eql(\"5\"));",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Registrar una cuenta nueva de prueba",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth/register",
+        "description": "Crea un cliente con correo aleatorio. Así cada corrida arranca con el contador de intentos en cero y la demo se puede repetir sin tocar la base.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Demo\",\n  \"apellido\": \"Config\",\n  \"documento\": \"{{doc_demo}}\",\n  \"correo\": \"{{correo_demo}}\",\n  \"telefono\": \"099000000\",\n  \"contrasena\": \"Password123!\",\n  \"confirmar_contrasena\": \"Password123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);",
+              "    pm.collectionVariables.set(\"correo_demo\", \"demo_\" + id + \"@petcore.com\");",
+              "    pm.collectionVariables.set(\"doc_demo\", id.slice(0, 20));",
+              "})();"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    pm.test(\"Cuenta creada (201)\", () => pm.response.to.have.status(201));",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Login incorrecto 1 de 2 (límite 5)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth/login",
+        "description": "Primer intento fallido. Con el límite en 5 la cuenta no se bloquea.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_demo}}\",\n  \"contrasena\": \"incorrecta\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"401: credenciales incorrectas\", () => {",
+              "        pm.response.to.have.status(401);",
+              "        pm.expect(data.detail).to.include(\"incorrectos\");",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 - Login incorrecto 2 de 2 (límite 5)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth/login",
+        "description": "Segundo intento fallido. Sigue sin bloquearse (2 de 5).",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_demo}}\",\n  \"contrasena\": \"incorrecta\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"401: credenciales incorrectas, cuenta todavía no bloqueada\", () => {",
+              "        pm.response.to.have.status(401);",
+              "        pm.expect(data.detail).to.include(\"incorrectos\");",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 - Cambiar LOGIN_MAX_INTENTOS a 3 (sin reiniciar nada)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/admin/configuracion/LOGIN_MAX_INTENTOS",
+        "description": "El administrador baja el límite de 5 a 3 mientras la API está funcionando. No se reconstruye la imagen ni se reinician los contenedores.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"valor\": \"3\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Cambio aceptado (200)\", () => pm.response.to.have.status(200));",
+              "    pm.test(\"El valor guardado es 3\", () => pm.expect(data.valor).to.eql(\"3\"));",
+              "    pm.test(\"Queda registrado quién y cuándo lo cambió\", () => {",
+              "        pm.expect(data.id_usuario_modificador).to.be.a(\"number\");",
+              "        pm.expect(data.fecha_modificacion).to.be.a(\"string\");",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6 - Login incorrecto 3 (con el límite nuevo, este bloquea)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth/login",
+        "description": "Tercer intento fallido. Con el límite viejo (5) no pasaba nada; con el nuevo (3) este intento bloquea la cuenta. La respuesta sigue diciendo 'incorrectos': el bloqueo se nota en el próximo intento.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_demo}}\",\n  \"contrasena\": \"incorrecta\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"401: credenciales incorrectas\", () => {",
+              "        pm.response.to.have.status(401);",
+              "        pm.expect(data.detail).to.include(\"incorrectos\");",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7 - Login con la contraseña CORRECTA (debe estar bloqueada)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth/login",
+        "description": "Prueba del cambio en caliente: con el límite original (5) este login habría entrado con 200. Ahora la cuenta está bloqueada porque la API usó el valor nuevo.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"{{correo_demo}}\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Cuenta bloqueada: ni con la clave correcta entra\", () => {",
+              "        pm.response.to.have.status(401);",
+              "        pm.expect(data.detail).to.include(\"bloqueada\");",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 - Restaurar LOGIN_MAX_INTENTOS a 5",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/admin/configuracion/LOGIN_MAX_INTENTOS",
+        "description": "Deja la configuración como estaba.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"valor\": \"5\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Restaurado (200)\", () => pm.response.to.have.status(200));",
+              "    pm.test(\"El valor vuelve a ser 5\", () => pm.expect(data.valor).to.eql(\"5\"));",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9 - Valor fuera de rango rechazado",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/admin/configuracion/LOGIN_MAX_INTENTOS",
+        "description": "El endpoint valida el rango (3 a 10), el mismo que ya exige Settings. Un 2 se rechaza y no cambia nada.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"valor\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    pm.test(\"422: valor fuera de rango\", () => pm.response.to.have.status(422));",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Login (cliente)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth/login",
+        "description": "Inicia sesión como cliente para probar que no puede tocar la configuración.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"ana.cliente@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Login exitoso (200)\", () => pm.response.to.have.status(200));",
+              "    pm.collectionVariables.set(\"token_cliente\", data.access_token);",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Un cliente no puede ver la configuración",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token_cliente}}"
+          }
+        ],
+        "url": "{{base_url}}/admin/configuracion",
+        "description": "Solo el rol ADMINISTRADOR puede consultar y cambiar la configuración."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    pm.test(\"403: solo el administrador\", () => pm.response.to.have.status(403));",
+              "})();"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

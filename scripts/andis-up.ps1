@@ -11,6 +11,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Actualizando el balanceador..."
 
 docker compose up -d --no-deps --force-recreate balanceador
+docker compose up --build -d --no-deps --force-recreate balanceador
 
 if ($LASTEXITCODE -ne 0) {
     throw "No se pudo iniciar el balanceador."
