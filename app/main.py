@@ -4,8 +4,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from psycopg import OperationalError
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 from sqlmodel import Session, text
-from app.database import FALLAR_PROXIMAS_CONEXIONES, ULTIMO_INTENTO_CONEXION, get_session
+from app.database import FALLAR_PROXIMAS_CONEXIONES, ULTIMO_INTENTO_CONEXION, engine, get_session
 from app.configuracion.controller import router as configuracion_router
 
 from app.turnos.repository import FORZAR_FALLA_TRAS_INSERTAR_CONSULTA
@@ -76,11 +77,14 @@ def hello():
 #Verifica que la API esté funcionando correctamente, incluyendo la conexión a la base.
 #Si la base no responde, devuelve 503 para que Docker/Nginx dejen de mandarle tráfico
 #a esta réplica (ver healthcheck del servicio "server" en compose.yaml).
+#Chequea la conexión directo (sin los reintentos de get_session): un health check
+#debe fallar rápido, no demorarse reintentando con backoff.
 @app.get("/health")
-def health(session: Session = Depends(get_session)) -> dict:
+def health() -> dict:
     try:
-        session.execute(text("SELECT 1"))
-    except OperationalError:
+        with Session(engine) as session:
+            session.execute(text("SELECT 1"))
+    except (OperationalError, SQLAlchemyOperationalError):
         raise HTTPException(status_code=503, detail="Base de datos no disponible.")
     return {"status": "ok"}
 

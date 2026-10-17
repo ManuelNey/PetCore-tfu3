@@ -1,0 +1,189 @@
+{
+  "info": {
+    "name": "Pet-Core — Cache-Aside",
+    "description": "Demuestra que `tipos-atencion` (y `especies`, de la misma forma) se sirve desde Redis en vez de PostgreSQL cuando el dato ya fue pedido antes, y que al crear un tipo de atención nuevo el cache se invalida para no mostrar una lista vieja.\n\nSecuencia: login como cliente → primer GET (cache miss, consulta Postgres y guarda en Redis) → segundo GET (cache hit, responde con el mismo contenido sin volver a tocar Postgres) → POST crea un tipo de atención nuevo (esto borra la clave de Redis) → tercer GET (cache miss de nuevo, y la lista ya incluye el tipo nuevo).\n\nCada request tiene asserts (pestaña Test); se puede correr entera con 'Run'. Es repetible: cada corrida crea un tipo de atención con nombre aleatorio.\n\nPara ver la diferencia de tiempos a ojo (no solo que el contenido es igual), mirar la columna 'Time' de Postman en las requests 1 y 2: la 2 debería ser igual o más rápida. Si se quiere forzar un cache miss limpio antes de correr la colección, borrar la clave a mano:\n\ndocker compose exec redis redis-cli DEL tipos_atencion:listado\n\nRequisito: la API levantada en {{base_url}} con Redis arriba (ver scripts/andis-up.ps1) y los datos de prueba cargados.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token_cliente",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "listado_inicial",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "nombre_tipo_demo",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0 - Login (cliente)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/auth/login",
+        "description": "Inicia sesión como cliente y guarda el token en `token_cliente`. `tipos-atencion` acepta CLIENTE o VETERINARIO.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"ana.cliente@petcore.com\",\n  \"contrasena\": \"Password123!\"\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Login exitoso (200)\", () => pm.response.to.have.status(200));",
+              "    pm.collectionVariables.set(\"token_cliente\", data.access_token);",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 - Primer GET /tipos-atencion (cache miss, consulta Postgres)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_cliente}}" }
+        ],
+        "url": "{{base_url}}/tipos-atencion",
+        "description": "Si nadie pidió esto antes (o se borró la clave a mano), EspecieService/TipoAtencionService no encuentra nada en Redis, consulta Postgres y guarda el resultado en la clave `tipos_atencion:listado`. Mirar el tiempo de respuesta en Postman (columna 'Time') para comparar con el siguiente request."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+              "    pm.test(\"Devuelve una lista\", () => pm.expect(data).to.be.an(\"array\"));",
+              "    pm.collectionVariables.set(\"listado_inicial\", JSON.stringify(data));",
+              "    console.log(\"Tiempo (posible cache miss): \" + pm.response.responseTime + \" ms\");",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Segundo GET /tipos-atencion (cache hit, responde desde Redis)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_cliente}}" }
+        ],
+        "url": "{{base_url}}/tipos-atencion",
+        "description": "Misma consulta de nuevo, inmediatamente después. Ahora la clave ya está en Redis: el servicio devuelve ese contenido sin volver a ejecutar la consulta SQL. El contenido tiene que ser idéntico al del request anterior."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+              "    pm.test(\"El contenido es idéntico al del cache miss anterior\", () => {",
+              "        pm.expect(JSON.stringify(data)).to.eql(pm.collectionVariables.get(\"listado_inicial\"));",
+              "    });",
+              "    console.log(\"Tiempo (cache hit esperado): \" + pm.response.responseTime + \" ms\");",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Crear un tipo de atención nuevo (invalida el cache)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/tipos-atencion",
+        "description": "TipoAtencionService.crear() inserta en Postgres y después borra la clave `tipos_atencion:listado` de Redis, porque la lista guardada quedó desactualizada.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"{{nombre_tipo_demo}}\",\n  \"descripcion\": \"Tipo de atención creado por la demo de Cache-Aside\",\n  \"duracion_minutos\": 30,\n  \"reservable_cliente\": true\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);",
+              "    pm.collectionVariables.set(\"nombre_tipo_demo\", \"DemoCache_\" + id);",
+              "})();"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    pm.test(\"Tipo de atención creado (201)\", () => pm.response.to.have.status(201));",
+              "})();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 - Tercer GET /tipos-atencion (cache miss otra vez, con el dato nuevo)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token_cliente}}" }
+        ],
+        "url": "{{base_url}}/tipos-atencion",
+        "description": "Como el POST anterior borró la clave de Redis, esta consulta vuelve a ir a Postgres. Si el patrón funciona, la lista tiene que incluir el tipo de atención recién creado; si Cache-Aside no invalidara el cache, acá se vería la lista vieja sin el nuevo."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "(function () {",
+              "    const data = pm.response.json();",
+              "    const nombreCreado = pm.collectionVariables.get(\"nombre_tipo_demo\");",
+              "    pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+              "    pm.test(\"La lista ya incluye el tipo de atención creado (cache invalidado)\", () => {",
+              "        pm.expect(data.some((t) => t.nombre === nombreCreado)).to.be.true;",
+              "    });",
+              "})();"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
