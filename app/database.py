@@ -3,13 +3,21 @@ import time
 from collections.abc import Generator
 
 from psycopg import OperationalError
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 from sqlmodel import Session, create_engine, text
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+engine = create_engine(
+    str(settings.SQLALCHEMY_DATABASE_URI),
+    # Sin esto, si el host de Postgres no responde (contenedor caído), el intento de
+    # conexión puede tardar varios segundos en fallar (timeout de TCP del SO) en vez de
+    # fallar rápido. Eso rompía /health: a veces dos réplicas lentas en fila superaban
+    # el timeout de Nginx y devolvía 504 en vez de un 503 limpio.
+    connect_args={"connect_timeout": 2},
+)
 
 # Activado solo para forzar la falla desde afuera en una demo.
 FALLAR_PROXIMAS_CONEXIONES = {"cantidad": 0}
@@ -49,7 +57,7 @@ def abrir_sesion_con_reintentos(intentos: int = 3, espera_base: float = 0.5) -> 
 
             return session
 
-        except OperationalError as error:
+        except (OperationalError, SQLAlchemyOperationalError) as error:
             if intento == intentos:
                 ULTIMO_INTENTO_CONEXION["intentos_usados"] = intento
                 ULTIMO_INTENTO_CONEXION["duracion_segundos"] = round(
